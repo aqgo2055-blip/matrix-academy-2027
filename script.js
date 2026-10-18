@@ -1,6 +1,6 @@
 /* ==========================================================================
    أكاديمية ميتركس للتكنولوجيا والإبداع - المحرك التفاعلي البرمجي الشامل (2027)
-   النسخة السحابية المعتمدة - متصلة بقاعدة بيانات Firebase سحابياً
+   النسخة السحابية المعتمدة - متصلة بالكامل بقاعدة بيانات Firebase
    ========================================================================== */
 
 // استيراد أدوات فايربيس من السحابة الرسمية
@@ -39,7 +39,64 @@ document.addEventListener('DOMContentLoaded', () => {
     initSupportMultiLevel();
     initCertificateVerification();
     checkUrlForDirectCertificate(); 
+    loadDynamicSiteContent(); // جلب وتحديث الإعلانات والنصوص المدارة عبر السحابة والبوت
 });
+
+// 0. مزامنة محتوى ونصوص الموقع مع الأوامر الصادرة من بوت التليجرام
+async function loadDynamicSiteContent() {
+    try {
+        const docRef = doc(db, "site_settings", "main");
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+            const data = snap.data();
+            
+            // 1. تحديث شريط الإعلانات العلوي
+            if (data.announcement) {
+                const announceElem = document.querySelector('.announcement-content > span:not(.badge)');
+                if (announceElem) {
+                    announceElem.innerText = data.announcement;
+                }
+            }
+            
+            // 2. تحديث سعر ورسوم دورة الويب
+            if (data.web_course_price) {
+                const cards = document.querySelectorAll('.premium-course-card');
+                if (cards.length > 1) {
+                    const priceElem = cards[1].querySelector('.price-val');
+                    if (priceElem) {
+                        priceElem.innerText = data.web_course_price;
+                        priceElem.setAttribute('data-usd', data.web_course_price);
+                    }
+                }
+            }
+            
+            // 3. تحديث نبذة المدير الأول (إدريس الإدريسي)
+            if (data.edris_bio) {
+                const bios = document.querySelectorAll('.manager-bio');
+                if (bios[0]) bios[0].innerText = data.edris_bio;
+            }
+            
+            // 4. تحديث نبذة المدير الثاني (صقر المعلوماتية)
+            if (data.saqr_bio) {
+                const bios = document.querySelectorAll('.manager-bio');
+                if (bios[2]) bios[2].innerText = data.saqr_bio;
+            }
+            
+            // 5. تحديث روابط قنوات التلغرام الرسمية
+            if (data.tg_link) {
+                document.querySelectorAll('a[href*="t.me/MATRIX_ACD"]').forEach(a => a.href = data.tg_link);
+            }
+            
+            // 6. تحديث روابط قنوات الواتساب الرسمية
+            if (data.wa_link) {
+                document.querySelectorAll('a[href*="whatsapp.com/channel/"]').forEach(a => a.href = data.wa_link);
+            }
+        }
+    } catch (e) {
+        // في حال عدم توفر اتصال بالإنترنت لحظياً، يظل المحتوى الافتراضي معروضاً بسلاسة
+        console.log("استخدام المحتوى الافتراضي:", e);
+    }
+}
 
 // 1. تثبيت سنة 2027 الصريحة في الفوتر برمجياً
 function initYearAutoFix() {
