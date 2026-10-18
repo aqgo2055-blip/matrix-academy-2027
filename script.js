@@ -1,10 +1,10 @@
 /* ==========================================================================
    أكاديمية ميتركس للتكنولوجيا والإبداع - المحرك التفاعلي البرمجي الشامل (2027)
-   النسخة السحابية المعتمدة - نظام التحكم الديناميكي الكامل بالمنصة والشهادات
+   النسخة السحابية المعتمدة - نظام التحكم الشامل ووضع الصيانة التكتيكي الفوري
    المطور: صقر المعلوماتية
    ========================================================================== */
 
-// استيراد أدوات فايربيس من السحابة الرسمية
+// استيراد أدوات فايربيس السحابية الرسمية
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
 import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 
@@ -41,118 +41,111 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCertificateVerification();
     checkUrlForDirectCertificate(); 
     
-    // تشغيل المحرك السحابي الشامل لمزامنة كل محتويات ودورات المنصة
+    // فحص وضع الصيانة ومزامنة المحتوى فور فتح الصفحة
     await loadDynamicSiteContent();
 });
 
 // ==========================================================================
-// المحرك السحابي الشامل: مزامنة الإعلانات، النبذات، الروابط، وتوليد الدورات ديناميكياً
+// 0. المحرك السحابي المركزي: الصيانة، الإعلانات، النبذات، والدورات اللانهائية
 // ==========================================================================
 async function loadDynamicSiteContent() {
     try {
-        // 1. جلب وتحديث الإعدادات العامة (الإعلان، النبذات، الروابط)
         const settingsRef = doc(db, "site_settings", "main");
         const settingsSnap = await getDoc(settingsRef);
 
         if (settingsSnap.exists()) {
             const d = settingsSnap.data();
 
-            // تحديث شريط الإعلانات العلوي
-            if (d.announcement) {
-                const announceElem = document.querySelector('.announcement-content > span:not(.badge)');
-                if (announceElem) announceElem.innerText = d.announcement;
+            // 1. نظام وضع الصيانة الشامل الحصري (يدعم الإلغاء الفوري والتحرير التلقائي)
+            if (d.maintenance_mode === true) {
+                applyMaintenanceModeUI(d);
+                return; // حجب باقي محتوى الموقع تماماً أثناء الصيانة
             }
 
-            // تحديث نبذة المدير الأول (إدريس الإدريسي)
+            // 2. التحكم بشريط الإعلانات العلوي (تعديل النص أو إخفاء الشريط نهائياً)
+            const announceBar = document.querySelector('.announcement-bar');
+            if (announceBar) {
+                if (d.announcement_active === false) {
+                    announceBar.style.display = 'none';
+                } else {
+                    announceBar.style.display = 'block';
+                    if (d.announcement) {
+                        const annText = announceBar.querySelector('.announcement-content > span:not(.badge)');
+                        if (annText) annText.innerText = d.announcement;
+                    }
+                }
+            }
+
+            // 3. تحديث نبذة الأكاديمية الرسمية
+            if (d.about_academy) {
+                const aboutP = document.querySelector('#about .accordion-inner p');
+                if (aboutP) aboutP.innerText = d.about_academy;
+            }
+
+            // 4. تحديث نبذة المدراء وروابط التواصل المباشرة
             const bios = document.querySelectorAll('.manager-bio');
             if (d.edris_bio_1 && bios[0]) bios[0].innerText = d.edris_bio_1;
             if (d.edris_bio_2 && bios[1]) bios[1].innerText = d.edris_bio_2;
-            if (d.edris_tg) {
-                document.querySelectorAll('a[href*="t.me/dea_y_1"]').forEach(a => a.href = d.edris_tg);
-            }
-            if (d.edris_wa) {
-                document.querySelectorAll('a[href*="wa.me/967717016894"]').forEach(a => a.href = d.edris_wa);
-            }
+            if (d.edris_tg) document.querySelectorAll('a[href*="t.me/dea_y_1"]').forEach(a => a.href = d.edris_tg);
+            if (d.edris_wa) document.querySelectorAll('a[href*="wa.me/967717016894"]').forEach(a => a.href = d.edris_wa);
 
-            // تحديث نبذة المدير الثاني (صقر المعلوماتية)
             if (d.saqr_bio_1 && bios[2]) bios[2].innerText = d.saqr_bio_1;
             if (d.saqr_bio_2 && bios[3]) bios[3].innerText = d.saqr_bio_2;
-            if (d.saqr_tg) {
-                document.querySelectorAll('a[href*="t.me/VIlllllllllllP"]').forEach(a => a.href = d.saqr_tg);
-            }
-            if (d.saqr_wa) {
-                document.querySelectorAll('a[href*="wa.me/967713962536"]').forEach(a => a.href = d.saqr_wa);
-            }
+            if (d.saqr_tg) document.querySelectorAll('a[href*="t.me/VIlllllllllllP"]').forEach(a => a.href = d.saqr_tg);
+            if (d.saqr_wa) document.querySelectorAll('a[href*="wa.me/967713962536"]').forEach(a => a.href = d.saqr_wa);
 
-            // تحديث الروابط الرسمية للمنصات السبع
-            if (d.tg_official) {
-                document.querySelectorAll('a[href*="t.me/MATRIX_ACD"]').forEach(a => a.href = d.tg_official);
-            }
-            if (d.wa_official) {
-                document.querySelectorAll('a[href*="whatsapp.com/channel/0029Vb8kH747IUYLVFqo4p2S"]').forEach(a => a.href = d.wa_official);
-            }
-            if (d.fb_official) {
-                document.querySelectorAll('a[href*="facebook.com"]').forEach(a => a.href = d.fb_official);
-            }
-            if (d.tiktok_official) {
-                document.querySelectorAll('a[href*="tiktok.com"]').forEach(a => a.href = d.tiktok_official);
-            }
-            if (d.insta_official) {
-                document.querySelectorAll('a[href*="instagram.com"]').forEach(a => a.href = d.insta_official);
-            }
-            if (d.yt_official) {
-                document.querySelectorAll('a[href*="youtube.com"]').forEach(a => a.href = d.yt_official);
-            }
-            if (d.x_official) {
-                document.querySelectorAll('a[href*="x.com"]').forEach(a => a.href = d.x_official);
-            }
+            // 5. تحديث الروابط الاجتماعية الرسمية السبعة في كافة أرجاء الموقع
+            if (d.tg_official) document.querySelectorAll('a[href*="t.me/MATRIX_ACD"]').forEach(a => a.href = d.tg_official);
+            if (d.wa_official) document.querySelectorAll('a[href*="whatsapp.com/channel/0029Vb8kH747IUYLVFqo4p2S"]').forEach(a => a.href = d.wa_official);
+            if (d.fb_official) document.querySelectorAll('a[href*="facebook.com"]').forEach(a => a.href = d.fb_official);
+            if (d.tt_official) document.querySelectorAll('a[href*="tiktok.com"]').forEach(a => a.href = d.tt_official);
+            if (d.ig_official) document.querySelectorAll('a[href*="instagram.com"]').forEach(a => a.href = d.ig_official);
+            if (d.yt_official) document.querySelectorAll('a[href*="youtube.com"]').forEach(a => a.href = d.yt_official);
+            if (d.x_official) document.querySelectorAll('a[href*="x.com"]').forEach(a => a.href = d.x_official);
         }
 
-        // 2. المحرك الديناميكي للدورات: جلب وبناء الدورات السحابية مهما كان عددها
+        // 6. المحرك الديناميكي لبناء وتوليد الدورات السحابية اللانهائية
         const coursesCol = collection(db, "courses");
         const coursesSnap = await getDocs(coursesCol);
 
         if (!coursesSnap.empty) {
             const tracksGrid = document.querySelector('.tracks-grid');
             if (tracksGrid) {
-                let generatedHtml = '';
-
+                let html = '';
                 coursesSnap.forEach(docSnap => {
                     const c = docSnap.data();
-                    
-                    // توليد محاور الدورة إذا وُجدت
                     let syllabusList = '';
                     if (c.syllabus && Array.isArray(c.syllabus)) {
                         syllabusList = c.syllabus.map(item => `<li><i class="fas fa-check-circle"></i> ${item}</li>`).join('');
-                    } else if (c.syllabus_text) {
-                        syllabusList = `<li><i class="fas fa-check-circle"></i> ${c.syllabus_text}</li>`;
+                    } else if (c.description) {
+                        syllabusList = `<li><i class="fas fa-check-circle"></i> ${c.description}</li>`;
                     } else {
-                        syllabusList = `<li><i class="fas fa-check-circle"></i> تطبيق عملي ومشاريع حية ومتابعة مستمرة.</li>`;
+                        syllabusList = `<li><i class="fas fa-check-circle"></i> تطبيق عملي ومشاريع حية ومتابعة مستمرة من المدرب.</li>`;
                     }
 
-                    const badgeStyle = c.badge_style || "color: #facc15; border-color: rgba(250, 204, 21, 0.35); background: rgba(250, 204, 21, 0.08);";
-                    const badgeText = c.badge || "متاح للتسجيل 🟢";
-                    const iconClass = c.icon || "fas fa-laptop-code";
-                    const priceUsd = c.price_usd || "$10";
-                    const priceYer = c.price_yer || "5,000 YER";
-                    const priceSar = c.price_sar || "40 SAR";
-                    const priceNote = c.price_note || "الحضور مجاني 100% | الرسوم لطلب الشهادة المعتمدة";
-                    const coordinator = c.coordinator || "saqr";
+                    const badge = c.badge || "متاح للتسجيل 🟢";
+                    const duration = c.duration || "4 أسابيع مكثفة";
+                    const instructor = c.instructor || "صقر المعلوماتية";
+                    const pUsd = c.price_usd || "$10";
+                    const pYer = c.price_yer || "5,000 YER";
+                    const pSar = c.price_sar || "40 SAR";
+                    const waTarget = c.instructor_wa || "967713962536";
+                    const tgTarget = c.instructor_tg || "VIlllllllllllP";
 
-                    generatedHtml += `
+                    html += `
                         <div class="premium-course-card" data-course-id="${docSnap.id}">
                             <div class="course-card-header">
-                                <div class="course-badge" style="${badgeStyle}">${badgeText}</div>
-                                <div class="course-icon"><i class="${iconClass}"></i></div>
+                                <div class="course-badge">${badge}</div>
+                                <div class="course-icon"><i class="fas fa-laptop-code"></i></div>
                             </div>
                             <h3 class="course-title">${c.title || 'مسار تدريبي معتمد'}</h3>
                             
                             <div class="course-price-box">
-                                <span class="price-val" data-usd="${priceUsd}" data-yer="${priceYer}" data-sar="${priceSar}">${priceUsd}</span>
-                                <small class="price-note">${priceNote}</small>
+                                <span class="price-val" data-usd="${pUsd}" data-yer="${pYer}" data-sar="${pSar}">${pUsd}</span>
+                                <small class="price-note">حضور ومحتوى متاح | الرسوم لطلب الشهادة المعتمدة</small>
                             </div>
 
-                            <p class="course-desc">${c.description || 'مسار عملي متكامل بأعلى المعايير التدريبية المعتمدة.'}</p>
+                            <p class="course-desc">${c.description || 'مسار تخصصي عملي متكامل بأعلى المعايير التدريبية.'}</p>
                             
                             <div class="course-accordion">
                                 <button class="btn-course-dropdown">
@@ -165,20 +158,23 @@ async function loadDynamicSiteContent() {
                             </div>
 
                             <div class="course-footer-info">
-                                <span><i class="far fa-clock"></i> ${c.duration || '4 أسابيع مكثفة'}</span>
-                                <span><i class="fas fa-user-tie"></i> المدرب: ${c.instructor || 'إدارة الأكاديمية'}</span>
+                                <span><i class="far fa-clock"></i> ${duration}</span>
+                                <span><i class="fas fa-user-tie"></i> المدرب: ${instructor}</span>
                             </div>
 
-                            <button class="btn-enroll open-booking-btn" data-course="${c.title}" data-coordinator="${coordinator}">
+                            <button class="btn-enroll open-booking-btn" 
+                                data-course="${c.title}" 
+                                data-wa="${waTarget}" 
+                                data-tg="${tgTarget}">
                                 <i class="fas fa-bolt"></i> حجز مقعد تدريبي
                             </button>
                         </div>
                     `;
                 });
 
-                tracksGrid.innerHTML = generatedHtml;
-
-                // إعادة تفعيل مستمعات الأحداث للبطاقات الجديدة المنشأة سحابياً
+                tracksGrid.innerHTML = html;
+                
+                // إعادة تنشيط مستمعات الأحداث للبطاقات الجديدة
                 initCourseAccordions();
                 initBookingSystem();
                 initCurrencySwitcher();
@@ -186,8 +182,72 @@ async function loadDynamicSiteContent() {
             }
         }
     } catch (err) {
-        console.log("استخدام المحتوى الافتراضي المحفوظ في الهيكل الأساسي:", err);
+        console.log("استخدام المحتوى الافتراضي للهيكل الأساسي:", err);
     }
+}
+
+// دالة حجب واجهة الموقع وعرض شاشة الصيانة التكتيكية الاحترافية
+function applyMaintenanceModeUI(settings) {
+    const title = settings.maintenance_title || "الموقع في وضع الصيانة والتحديث الدوري 🛠️";
+    const desc = settings.maintenance_desc || "عذراً عزيزي الزائر، تجري إدارة أكاديمية ميتركس حالياً عمليات تطوير وترقية دورية للبنية التحتية.";
+    const days = parseInt(settings.maintenance_days) || 0;
+    const hours = parseInt(settings.maintenance_hours) || 0;
+    const mins = parseInt(settings.maintenance_mins) || 0;
+
+    document.body.innerHTML = `
+        <div style="min-height: 100vh; background: #07090e; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'Tajawal', sans-serif; direction: rtl; text-align: center; color: #fff;">
+            <div style="max-width: 650px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 24px; padding: 40px 25px; box-shadow: 0 0 40px rgba(239, 68, 68, 0.25); backdrop-filter: blur(12px);">
+                <div style="font-size: 3.5rem; color: #ef4444; margin-bottom: 15px;">
+                    <i class="fas fa-tools fa-spin" style="--fa-animation-duration: 6s;"></i>
+                </div>
+                <h1 style="font-size: 1.8rem; font-weight: 900; color: #fff; margin-bottom: 12px; letter-spacing: -0.5px;">${title}</h1>
+                <p style="color: #94a3b8; font-size: 0.98rem; line-height: 1.7; margin-bottom: 25px;">${desc}</p>
+                
+                <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; margin-bottom: 25px;">
+                    <div style="color: #ef4444; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px;">
+                        <i class="fas fa-stopwatch"></i> الوقت التقديري المتبقي لانتهاء الصيانة والعودة للعمل:
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 12px; direction: ltr;">
+                        <div style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; border-radius: 12px; padding: 10px 16px; min-width: 65px;">
+                            <span id="m_days" style="font-size: 1.6rem; font-weight: 900; color: #ef4444; display: block;">${days}</span>
+                            <small style="font-size: 0.72rem; color: #94a3b8;">يوم</small>
+                        </div>
+                        <div style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; border-radius: 12px; padding: 10px 16px; min-width: 65px;">
+                            <span id="m_hours" style="font-size: 1.6rem; font-weight: 900; color: #ef4444; display: block;">${hours}</span>
+                            <small style="font-size: 0.72rem; color: #94a3b8;">ساعة</small>
+                        </div>
+                        <div style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; border-radius: 12px; padding: 10px 16px; min-width: 65px;">
+                            <span id="m_mins" style="font-size: 1.6rem; font-weight: 900; color: #ef4444; display: block;">${mins}</span>
+                            <small style="font-size: 0.72rem; color: #94a3b8;">دقيقة</small>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="color: #64748b; font-size: 0.82rem; margin: 0;">🚀 أڪاديمية ميترڪس للتڪنولوجـيـا والإبـداع (2027) | أنظمة التحكم التكتيكية</p>
+            </div>
+        </div>
+    `;
+
+    // حساب إجمالي الثواني والتحرير التلقائي عند انتهاء الوقت
+    let totalSec = (days * 86400) + (hours * 3600) + (mins * 60);
+    const timerInterval = setInterval(() => {
+        if (totalSec > 0) {
+            totalSec--;
+            const d = Math.floor(totalSec / 86400);
+            const h = Math.floor((totalSec % 86400) / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const dElem = document.getElementById('m_days');
+            const hElem = document.getElementById('m_hours');
+            const mElem = document.getElementById('m_mins');
+            if (dElem) dElem.innerText = String(d).padStart(2, '0');
+            if (hElem) hElem.innerText = String(h).padStart(2, '0');
+            if (mElem) mElem.innerText = String(m).padStart(2, '0');
+        } else {
+            // انتهاء وقت الصيانة: تحرير الصفحة تلقائياً
+            clearInterval(timerInterval);
+            window.location.reload();
+        }
+    }, 1000);
 }
 
 // 1. تثبيت سنة 2027 الصريحة في الفوتر برمجياً
@@ -249,12 +309,12 @@ function initDrawerMenu() {
 // 4. محول ومحدد العملات اللحظي لرسوم الدورات
 function initCurrencySwitcher() {
     const currButtons = document.querySelectorAll('.currency-btn');
-    const priceElements = document.querySelectorAll('.price-val');
     currButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             currButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const selectedCurr = btn.getAttribute('data-curr') || 'USD';
+            const priceElements = document.querySelectorAll('.price-val');
             priceElements.forEach(elem => {
                 let newPrice = elem.getAttribute('data-usd');
                 if (selectedCurr === 'YER') newPrice = elem.getAttribute('data-yer');
@@ -402,7 +462,7 @@ function initShareSystem() {
     }
 }
 
-// 7 & 8 & 9. الأكورديونات والتفاصيل
+// 7 & 8 & 9. الأكورديونات ومحاور الدورات
 function initAboutAccordion() {
     const headers = document.querySelectorAll('#about .accordion-header');
     headers.forEach(header => {
@@ -444,9 +504,7 @@ function initFaqAccordion() {
 }
 
 function initCourseAccordions() {
-    const dropdownBtns = document.querySelectorAll('.btn-course-dropdown');
-    dropdownBtns.forEach(btn => {
-        // إزالة أي مستمع قديم لمنع التكرار
+    document.querySelectorAll('.btn-course-dropdown').forEach(btn => {
         btn.replaceWith(btn.cloneNode(true));
     });
 
@@ -617,7 +675,7 @@ function initOfficialChannelsModals() {
     }
 }
 
-// 14. نظام حجز المقاعد السريع
+// 14. نظام حجز المقاعد وتوجيه الرسائل لمدرب الدورة المخصص
 function initBookingSystem() {
     const modal = document.getElementById('bookingModal');
     const closeBtn = document.getElementById('closeBooking');
@@ -627,8 +685,10 @@ function initBookingSystem() {
     const traineeContactInput = document.getElementById('traineeContact');
     const btnBookWhatsapp = document.getElementById('btnBookWhatsapp');
     const btnBookTelegram = document.getElementById('btnBookTelegram');
-    let currentSelectedCourse = 'مسار تدريبي عام';
-    let currentCoordinator = 'saqr';
+    
+    let currentCourse = 'مسار تدريبي عام';
+    let currentWa = '967713962536';
+    let currentTg = 'VIlllllllllllP';
 
     openBtns.forEach(btn => {
         btn.replaceWith(btn.cloneNode(true));
@@ -637,9 +697,11 @@ function initBookingSystem() {
     document.querySelectorAll('.open-booking-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            currentSelectedCourse = btn.getAttribute('data-course') || 'المسار التدريبي';
-            currentCoordinator = btn.getAttribute('data-coordinator') || 'saqr';
-            if (modalTitle) modalTitle.innerText = `حجز مقعد: ${currentSelectedCourse}`;
+            currentCourse = btn.getAttribute('data-course') || 'المسار التدريبي';
+            currentWa = btn.getAttribute('data-wa') || '967713962536';
+            currentTg = btn.getAttribute('data-tg') || 'VIlllllllllllP';
+            
+            if (modalTitle) modalTitle.innerText = `حجز مقعد: ${currentCourse}`;
             if (modal) {
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
@@ -654,6 +716,7 @@ function initBookingSystem() {
             document.body.style.overflow = '';
         });
     }
+
     if (btnBookWhatsapp) {
         btnBookWhatsapp.onclick = (e) => {
             e.preventDefault();
@@ -663,9 +726,8 @@ function initBookingSystem() {
                 alert('يرجى إدخال اسمك ومعلومات التواصل أولاً.');
                 return;
             }
-            const message = encodeURIComponent(`🚀 طلب انضمام وحجز مقعد - أكاديمية ميتركس\n\n📌 المسار التدريبي: ${currentSelectedCourse}\n👤 اسم المتدرب: ${name}\n📞 وسيلة التواصل: ${contact}`);
-            const targetPhone = (currentCoordinator === 'edris') ? '967717016894' : '967713962536';
-            window.open(`https://wa.me/${targetPhone}?text=${message}`, '_blank');
+            const message = encodeURIComponent(`🚀 طلب انضمام وحجز مقعد - أكاديمية ميتركس\n\n📌 المسار التدريبي: ${currentCourse}\n👤 اسم المتدرب: ${name}\n📞 وسيلة التواصل: ${contact}`);
+            window.open(`https://wa.me/${currentWa}?text=${message}`, '_blank');
             if (modal) {
                 modal.classList.remove('active');
                 document.body.style.overflow = '';
@@ -673,6 +735,7 @@ function initBookingSystem() {
             clearForm();
         };
     }
+
     if (btnBookTelegram) {
         btnBookTelegram.onclick = (e) => {
             e.preventDefault();
@@ -682,9 +745,8 @@ function initBookingSystem() {
                 alert('يرجى كتابة اسمك ومعلومات التواصل أولاً.');
                 return;
             }
-            const message = encodeURIComponent(`🚀 طلب انضمام وحجز مقعد - أكاديمية ميتركس\n\n📌 المسار التدريبي: ${currentSelectedCourse}\n👤 اسم المتدرب: ${name}\n📞 وسيلة التواصل: ${contact}`);
-            const targetUsername = (currentCoordinator === 'edris') ? 'dea_y_1' : 'VIlllllllllllP';
-            window.open(`https://t.me/${targetUsername}?text=${message}`, '_blank');
+            const message = encodeURIComponent(`🚀 طلب انضمام وحجز مقعد - أكاديمية ميتركس\n\n📌 المسار التدريبي: ${currentCourse}\n👤 اسم المتدرب: ${name}\n📞 وسيلة التواصل: ${contact}`);
+            window.open(`https://t.me/${currentTg}?text=${message}`, '_blank');
             if (modal) {
                 modal.classList.remove('active');
                 document.body.style.overflow = '';
@@ -692,6 +754,7 @@ function initBookingSystem() {
             clearForm();
         };
     }
+
     function clearForm() {
         if (traineeNameInput) traineeNameInput.value = '';
         if (traineeContactInput) traineeContactInput.value = '';
