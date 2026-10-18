@@ -122,6 +122,22 @@ async function loadDynamicSiteContent() {
             if (d.footer_yt_url) document.querySelectorAll('.footer-socials a.f-yt').forEach(a => a.href = d.footer_yt_url);
             if (d.footer_x_url)  document.querySelectorAll('.footer-socials a.f-x').forEach(a => a.href = d.footer_x_url);
 
+            // د) قنوات التلغرام الثلاث المعتمدة في النافذة المنبثقة (#tgChannelsModal)
+            const tgModalLinks = document.querySelectorAll('#tgChannelsModal .channels-list a.channel-item');
+            if (tgModalLinks.length >= 3) {
+                if (d.modal_tg_1_url) tgModalLinks[0].href = d.modal_tg_1_url;
+                if (d.modal_tg_2_url) tgModalLinks[1].href = d.modal_tg_2_url;
+                if (d.modal_tg_3_url) tgModalLinks[2].href = d.modal_tg_3_url;
+            }
+
+            // هـ) قنوات الواتساب الثلاث المعتمدة في النافذة المنبثقة (#waChannelsModal)
+            const waModalLinks = document.querySelectorAll('#waChannelsModal .channels-list a.channel-item');
+            if (waModalLinks.length >= 3) {
+                if (d.modal_wa_1_url) waModalLinks[0].href = d.modal_wa_1_url;
+                if (d.modal_wa_2_url) waModalLinks[1].href = d.modal_wa_2_url;
+                if (d.modal_wa_3_url) waModalLinks[2].href = d.modal_wa_3_url;
+            }
+
             // دعم الروابط العامة إذا حُدثت من البوابة القديمة
             if (d.tg_official) document.querySelectorAll('a[href*="t.me/MATRIX_ACD"]').forEach(a => a.href = d.tg_official);
             if (d.wa_official) document.querySelectorAll('a[href*="whatsapp.com/channel/0029Vb8kH747IUYLVFqo4p2S"]').forEach(a => a.href = d.wa_official);
@@ -149,17 +165,36 @@ async function loadDynamicSiteContent() {
                     const badge = c.badge || "متاح للتسجيل 🟢";
                     const duration = c.duration || "4 أسابيع مكثفة";
                     const instructor = c.instructor || "صقر المعلوماتية";
+                    const iconClass = c.icon || "fas fa-laptop-code";
+                    const countdownDays = parseInt(c.countdown_days) || 0;
                     const pUsd = c.price_usd || "$10";
                     const pYer = c.price_yer || "5,000 YER";
                     const pSar = c.price_sar || "40 SAR";
                     const waTarget = c.instructor_wa || "967713962536";
                     const tgTarget = c.instructor_tg || "VIlllllllllllP";
 
+                    // تجهيز جزء العداد التنازلي التكتيكي للدفعة
+                    let countdownHtml = '';
+                    if (countdownDays > 0) {
+                        countdownHtml = `
+                            <div class="course-countdown" data-days="${countdownDays}" data-hours="12">
+                                <div class="countdown-label"><i class="fas fa-stopwatch"></i> متبقي لانطلاق فترة الحجز والتجربة:</div>
+                                <div class="countdown-timer">
+                                    <div class="timer-unit"><span class="timer-val days-val">${String(countdownDays).padStart(2, '0')}</span><small>يوم</small></div>
+                                    <span class="timer-sep">:</span>
+                                    <div class="timer-unit"><span class="timer-val hours-val">12</span><small>ساعة</small></div>
+                                    <span class="timer-sep">:</span>
+                                    <div class="timer-unit"><span class="timer-val mins-val">00</span><small>دقيقة</small></div>
+                                </div>
+                            </div>
+                        `;
+                    }
+
                     html += `
                         <div class="premium-course-card" data-course-id="${docSnap.id}">
                             <div class="course-card-header">
                                 <div class="course-badge">${badge}</div>
-                                <div class="course-icon"><i class="fas fa-laptop-code"></i></div>
+                                <div class="course-icon"><i class="${iconClass}"></i></div>
                             </div>
                             <h3 class="course-title">${c.title || 'مسار تدريبي معتمد'}</h3>
                             
@@ -167,6 +202,8 @@ async function loadDynamicSiteContent() {
                                 <span class="price-val" data-usd="${pUsd}" data-yer="${pYer}" data-sar="${pSar}">${pUsd}</span>
                                 <small class="price-note">حضور ومحتوى متاح | الرسوم لطلب الشهادة المعتمدة</small>
                             </div>
+
+                            ${countdownHtml}
 
                             <p class="course-desc">${c.description || 'مسار تخصصي عملي متكامل بأعلى المعايير التدريبية.'}</p>
                             
@@ -202,6 +239,7 @@ async function loadDynamicSiteContent() {
                 initBookingSystem();
                 initCurrencySwitcher();
                 initButtonRipple();
+                initCourseCountdowns();
             }
         }
     } catch (err) {
