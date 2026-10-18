@@ -1,6 +1,6 @@
 /* ==========================================================================
    أكاديمية ميتركس للتكنولوجيا والإبداع - المحرك التفاعلي البرمجي الشامل (2027)
-   النسخة السحابية المعتمدة - نظام التحكم الشامل ووضع الصيانة التكتيكي الفوري
+   النسخة السحابية المعتمدة - نظام التحكم الشامل، المنصات الثلاثية، ووضع الصيانة
    المطور: صقر المعلوماتية
    ========================================================================== */
 
@@ -41,12 +41,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCertificateVerification();
     checkUrlForDirectCertificate(); 
     
-    // فحص وضع الصيانة ومزامنة المحتوى فور فتح الصفحة
+    // تشغيل المحرك السحابي الشامل لمزامنة وضع الصيانة وكامل محتويات المنصة
     await loadDynamicSiteContent();
 });
 
 // ==========================================================================
-// 0. المحرك السحابي المركزي: الصيانة، الإعلانات، النبذات، والدورات اللانهائية
+// 0. المحرك السحابي المركزي: وضع الصيانة، الإعلانات، المنصات المنفصلة، والدورات
 // ==========================================================================
 async function loadDynamicSiteContent() {
     try {
@@ -56,13 +56,13 @@ async function loadDynamicSiteContent() {
         if (settingsSnap.exists()) {
             const d = settingsSnap.data();
 
-            // 1. نظام وضع الصيانة الشامل الحصري (يدعم الإلغاء الفوري والتحرير التلقائي)
+            // 1. نظام وضع الصيانة الشامل الحصري (يدعم التحرير التلقائي والإلغاء الفوري)
             if (d.maintenance_mode === true) {
                 applyMaintenanceModeUI(d);
                 return; // حجب باقي محتوى الموقع تماماً أثناء الصيانة
             }
 
-            // 2. التحكم بشريط الإعلانات العلوي (تعديل النص أو إخفاء الشريط نهائياً)
+            // 2. التحكم بشريط الإعلانات العلوي (تعديل النص أو حذفه وإخفائه بالكامل)
             const announceBar = document.querySelector('.announcement-bar');
             if (announceBar) {
                 if (d.announcement_active === false) {
@@ -94,14 +94,37 @@ async function loadDynamicSiteContent() {
             if (d.saqr_tg) document.querySelectorAll('a[href*="t.me/VIlllllllllllP"]').forEach(a => a.href = d.saqr_tg);
             if (d.saqr_wa) document.querySelectorAll('a[href*="wa.me/967713962536"]').forEach(a => a.href = d.saqr_wa);
 
-            // 5. تحديث الروابط الاجتماعية الرسمية السبعة في كافة أرجاء الموقع
+            // 5. التحكم المنفصل التام بالمنصات السبع (أعلى / جانب / أسفل)
+            // أ) منصات الشريط العلوي (.social-strip)
+            if (d.top_tg_url) document.querySelectorAll('.social-strip a.icon-tg').forEach(a => a.href = d.top_tg_url);
+            if (d.top_wa_url) document.querySelectorAll('.social-strip a.icon-wa').forEach(a => a.href = d.top_wa_url);
+            if (d.top_fb_url) document.querySelectorAll('.social-strip a.icon-fb').forEach(a => a.href = d.top_fb_url);
+            if (d.top_tt_url) document.querySelectorAll('.social-strip a.icon-tt').forEach(a => a.href = d.top_tt_url);
+            if (d.top_ig_url) document.querySelectorAll('.social-strip a.icon-ig').forEach(a => a.href = d.top_ig_url);
+            if (d.top_yt_url) document.querySelectorAll('.social-strip a.icon-yt').forEach(a => a.href = d.top_yt_url);
+            if (d.top_x_url)  document.querySelectorAll('.social-strip a.icon-x').forEach(a => a.href = d.top_x_url);
+
+            // ب) منصات القائمة الجانبية (.drawer-socials)
+            if (d.drawer_tg_url) document.querySelectorAll('.drawer-socials a.s-tg').forEach(a => a.href = d.drawer_tg_url);
+            if (d.drawer_wa_url) document.querySelectorAll('.drawer-socials a.s-wa').forEach(a => a.href = d.drawer_wa_url);
+            if (d.drawer_fb_url) document.querySelectorAll('.drawer-socials a.s-fb').forEach(a => a.href = d.drawer_fb_url);
+            if (d.drawer_tt_url) document.querySelectorAll('.drawer-socials a.s-tt').forEach(a => a.href = d.drawer_tt_url);
+            if (d.drawer_ig_url) document.querySelectorAll('.drawer-socials a.s-ig').forEach(a => a.href = d.drawer_ig_url);
+            if (d.drawer_yt_url) document.querySelectorAll('.drawer-socials a.s-yt').forEach(a => a.href = d.drawer_yt_url);
+            if (d.drawer_x_url)  document.querySelectorAll('.drawer-socials a.s-x').forEach(a => a.href = d.drawer_x_url);
+
+            // ج) منصات الفوتر السفلي (.footer-socials)
+            if (d.footer_tg_url) document.querySelectorAll('.footer-socials a.f-tg').forEach(a => a.href = d.footer_tg_url);
+            if (d.footer_wa_url) document.querySelectorAll('.footer-socials a.f-wa').forEach(a => a.href = d.footer_wa_url);
+            if (d.footer_fb_url) document.querySelectorAll('.footer-socials a.f-fb').forEach(a => a.href = d.footer_fb_url);
+            if (d.footer_tt_url) document.querySelectorAll('.footer-socials a.f-tt').forEach(a => a.href = d.footer_tt_url);
+            if (d.footer_ig_url) document.querySelectorAll('.footer-socials a.f-ig').forEach(a => a.href = d.footer_ig_url);
+            if (d.footer_yt_url) document.querySelectorAll('.footer-socials a.f-yt').forEach(a => a.href = d.footer_yt_url);
+            if (d.footer_x_url)  document.querySelectorAll('.footer-socials a.f-x').forEach(a => a.href = d.footer_x_url);
+
+            // دعم الروابط العامة إذا حُدثت من البوابة القديمة
             if (d.tg_official) document.querySelectorAll('a[href*="t.me/MATRIX_ACD"]').forEach(a => a.href = d.tg_official);
             if (d.wa_official) document.querySelectorAll('a[href*="whatsapp.com/channel/0029Vb8kH747IUYLVFqo4p2S"]').forEach(a => a.href = d.wa_official);
-            if (d.fb_official) document.querySelectorAll('a[href*="facebook.com"]').forEach(a => a.href = d.fb_official);
-            if (d.tt_official) document.querySelectorAll('a[href*="tiktok.com"]').forEach(a => a.href = d.tt_official);
-            if (d.ig_official) document.querySelectorAll('a[href*="instagram.com"]').forEach(a => a.href = d.ig_official);
-            if (d.yt_official) document.querySelectorAll('a[href*="youtube.com"]').forEach(a => a.href = d.yt_official);
-            if (d.x_official) document.querySelectorAll('a[href*="x.com"]').forEach(a => a.href = d.x_official);
         }
 
         // 6. المحرك الديناميكي لبناء وتوليد الدورات السحابية اللانهائية
@@ -174,7 +197,7 @@ async function loadDynamicSiteContent() {
 
                 tracksGrid.innerHTML = html;
                 
-                // إعادة تنشيط مستمعات الأحداث للبطاقات الجديدة
+                // إعادة تنشيط مستمعات الأحداث للبطاقات الجديدة المنشأة سحابياً
                 initCourseAccordions();
                 initBookingSystem();
                 initCurrencySwitcher();
@@ -228,7 +251,7 @@ function applyMaintenanceModeUI(settings) {
         </div>
     `;
 
-    // حساب إجمالي الثواني والتحرير التلقائي عند انتهاء الوقت
+    // حساب إجمالي الثواني والتحرير التلقائي للموقع عند انتهاء الوقت
     let totalSec = (days * 86400) + (hours * 3600) + (mins * 60);
     const timerInterval = setInterval(() => {
         if (totalSec > 0) {
