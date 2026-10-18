@@ -1,6 +1,6 @@
 /* ==========================================================================
    أكاديمية ميتركس للتكنولوجيا والإبداع - المحرك التفاعلي البرمجي الشامل (2027)
-   النسخة السحابية المعتمدة - نظام التحكم الشامل، المستشار الذكي، ووضع الصيانة
+   النسخة السحابية المعتمدة - نظام التحكم الشامل، الشارات التفاعلية، وتأثيرات التمرير
    المطور: صقر المعلوماتية
    ========================================================================== */
 
@@ -48,9 +48,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCertificateVerification();
     checkUrlForDirectCertificate(); 
     
-    // تشغيل المحرك السحابي الشامل والمستشار الذكي الديناميكي
+    // تشغيل المحرك السحابي الشامل، المستشار الذكي، ومحرك التمرير السلس
     await loadDynamicSiteContent();
     initTrackQuiz();
+    initScrollReveal();
 });
 
 // ==========================================================================
@@ -149,7 +150,7 @@ async function loadDynamicSiteContent() {
             if (d.tg_official) document.querySelectorAll('a[href*="t.me/MATRIX_ACD"]').forEach(a => a.href = d.tg_official);
             if (d.wa_official) document.querySelectorAll('a[href*="whatsapp.com/channel/0029Vb8kH747IUYLVFqo4p2S"]').forEach(a => a.href = d.wa_official);
 
-            // 6. تطبيق تعديلات الدورتين الأساسيتين من السحابة إذا وُجدت
+            // 6. تطبيق تعديلات الدورتين الأساسيتين (الشارات الذكية، الأسعار، العدادات، والنبذات)
             applyBaseCourseModifications(d);
         }
 
@@ -201,7 +202,7 @@ async function loadDynamicSiteContent() {
                     }
 
                     combinedHTML += `
-                        <div class="premium-course-card" data-course-id="${docSnap.id}">
+                        <div class="premium-course-card scroll-reveal" data-course-id="${docSnap.id}">
                             <div class="course-card-header">
                                 <div class="course-badge">${badge}</div>
                                 <div class="course-icon"><i class="${iconClass}"></i></div>
@@ -252,58 +253,149 @@ async function loadDynamicSiteContent() {
             initButtonRipple();
             initCourseCountdowns();
             updateComparisonTableDynamically(coursesSnap);
+            initScrollReveal();
         }
     } catch (err) {
         console.log("استخدام المحتوى الافتراضي للهيكل الأساسي:", err);
     }
 }
 
-// تعديل الدورتين الأساسيتين عند وصول تعديلات من السحابة
+// تعديل الدورتين الأساسيتين وفق بيانات السحابة (مع معالجة المقاعد المكتملة وإخفاء العداد)
 function applyBaseCourseModifications(data) {
     const cards = document.querySelectorAll('.premium-course-card');
     if (cards.length < 2) return;
 
-    // 1. دورة اللغة الإنجليزية (الكارت الأول)
-    if (data.c_eng_badge) {
-        const b = cards[0].querySelector('.course-badge');
-        if (b) b.innerText = data.c_eng_badge;
-    }
-    if (data.c_eng_price_usd) {
-        const p = cards[0].querySelector('.price-val');
-        if (p) {
-            p.setAttribute('data-usd', data.c_eng_price_usd);
-            p.innerText = data.c_eng_price_usd;
+    const setupBaseCard = (card, prefix) => {
+        // الشارة
+        if (data[`${prefix}_badge`]) {
+            const b = card.querySelector('.course-badge');
+            if (b) b.innerText = data[`${prefix}_badge`];
         }
-    }
-    if (data.c_eng_price_yer) {
-        const p = cards[0].querySelector('.price-val');
-        if (p) p.setAttribute('data-yer', data.c_eng_price_yer);
-    }
-    if (data.c_eng_price_sar) {
-        const p = cards[0].querySelector('.price-val');
-        if (p) p.setAttribute('data-sar', data.c_eng_price_sar);
-    }
+
+        // الأسعار
+        const p = card.querySelector('.price-val');
+        if (p) {
+            if (data[`${prefix}_price_usd`]) {
+                p.setAttribute('data-usd', data[`${prefix}_price_usd`]);
+                p.innerText = data[`${prefix}_price_usd`];
+            }
+            if (data[`${prefix}_price_yer`]) p.setAttribute('data-yer', data[`${prefix}_price_yer`]);
+            if (data[`${prefix}_price_sar`]) p.setAttribute('data-sar', data[`${prefix}_price_sar`]);
+        }
+
+        // النبذة والمحاور
+        if (data[`${prefix}_desc`]) {
+            const descElem = card.querySelector('.course-desc');
+            if (descElem) descElem.innerText = data[`${prefix}_desc`];
+        }
+
+        // فحص حالة الدورة: هل هي مكتملة المقاعد أم لا
+        const isFull = (data[`${prefix}_status`] === 'full') || 
+                       (data[`${prefix}_badge`] && data[`${prefix}_badge`].includes('مكتملة'));
+
+        let countdownBox = card.querySelector('.course-countdown');
+        let completedBox = card.querySelector('.completed-batch-notice');
+
+        if (isFull) {
+            // إخفاء العداد التنازلي تماماً
+            if (countdownBox) countdownBox.style.display = 'none';
+
+            // نص الإشعار البديل
+            const noticeText = data[`${prefix}_notice`] || 
+                "📌 إشعار الدفعة: اكتملت المقاعد المخصصة لهذه الدورة بنجاح، وقد تم انطلاق البرنامج مسبقاً. في حال إطلاق دفعة جديدة سيتم الإعلان عنها واعتمادها رسمياً هنا عبر المنصة.";
+
+            if (!completedBox) {
+                completedBox = document.createElement('div');
+                completedBox.className = 'completed-batch-notice';
+                
+                // إضافة الصندوق البديل الفاخر بعد صندوق السعر مباشرة
+                const priceBox = card.querySelector('.course-price-box');
+                if (priceBox && priceBox.nextSibling) {
+                    priceBox.parentNode.insertBefore(completedBox, priceBox.nextSibling);
+                } else {
+                    card.appendChild(completedBox);
+                }
+            }
+
+            completedBox.style.display = 'block';
+            completedBox.innerHTML = `
+                <div class="batch-notice-inner">
+                    <i class="fas fa-lock"></i>
+                    <span>${noticeText}</span>
+                </div>
+            `;
+        } else {
+            // إذا كانت متاحة للتسجيل أو حجز مبكر
+            if (completedBox) completedBox.style.display = 'none';
+
+            const days = parseInt(data[`${prefix}_countdown_days`]);
+            if (!isNaN(days) && days > 0) {
+                if (!countdownBox) {
+                    countdownBox = document.createElement('div');
+                    countdownBox.className = 'course-countdown';
+                    const priceBox = card.querySelector('.course-price-box');
+                    if (priceBox && priceBox.nextSibling) {
+                        priceBox.parentNode.insertBefore(countdownBox, priceBox.nextSibling);
+                    }
+                }
+                countdownBox.style.display = 'block';
+                countdownBox.setAttribute('data-days', days);
+                countdownBox.setAttribute('data-hours', 12);
+                countdownBox.innerHTML = `
+                    <div class="countdown-label"><i class="fas fa-stopwatch"></i> متبقي لانطلاق فترة الحجز والتجربة:</div>
+                    <div class="countdown-timer">
+                        <div class="timer-unit"><span class="timer-val days-val">${String(days).padStart(2, '0')}</span><small>يوم</small></div>
+                        <span class="timer-sep">:</span>
+                        <div class="timer-unit"><span class="timer-val hours-val">12</span><small>ساعة</small></div>
+                        <span class="timer-sep">:</span>
+                        <div class="timer-unit"><span class="timer-val mins-val">00</span><small>دقيقة</small></div>
+                    </div>
+                `;
+            } else if (days === 0 && countdownBox) {
+                countdownBox.style.display = 'none';
+            }
+        }
+    };
+
+    // 1. دورة اللغة الإنجليزية (الكارت الأول)
+    setupBaseCard(cards[0], 'c_eng');
 
     // 2. دورة تطوير الويب والذكاء الاصطناعي (الكارت الثاني)
-    if (data.c_web_badge) {
-        const b = cards[1].querySelector('.course-badge');
-        if (b) b.innerText = data.c_web_badge;
+    setupBaseCard(cards[1], 'c_web');
+}
+
+// محرك التمرير السلس السريع كالريشة (Scroll Reveal Animation)
+function initScrollReveal() {
+    const revealElements = document.querySelectorAll(
+        '.premium-course-card, .comm-card, .accordion-item, .comparison-wrapper, .diploma-preview-box, .stat-pill'
+    );
+
+    if (!('IntersectionObserver' in window)) {
+        revealElements.forEach(el => el.classList.add('revealed'));
+        return;
     }
-    if (data.c_web_price_usd) {
-        const p = cards[1].querySelector('.price-val');
-        if (p) {
-            p.setAttribute('data-usd', data.c_web_price_usd);
-            p.innerText = data.c_web_price_usd;
-        }
-    }
-    if (data.c_web_price_yer) {
-        const p = cards[1].querySelector('.price-val');
-        if (p) p.setAttribute('data-yer', data.c_web_price_yer);
-    }
-    if (data.c_web_price_sar) {
-        const p = cards[1].querySelector('.price-val');
-        if (p) p.setAttribute('data-sar', data.c_web_price_sar);
-    }
+
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.12
+    };
+
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    revealElements.forEach((el, index) => {
+        el.classList.add('scroll-reveal-item');
+        // تأخير تدريجي خفيف جداً للأزرار والبطاقات المتجاورة
+        el.style.transitionDelay = `${(index % 3) * 0.08}s`;
+        revealObserver.observe(el);
+    });
 }
 
 // تحديث جدول المقارنة تلقائياً مع دعم التمرير السلس

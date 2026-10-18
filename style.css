@@ -1,5 +1,6 @@
 /* ==========================================================================
    أكاديمية ميتركس للتكنولوجيا والإبداع - ملف التنسيق الاحترافي الشامل (2027)
+   النسخة المطورة: دعم أنيميشن الظهور السلس (Scroll Reveal) وصندوق اكتمال المقاعد
    ========================================================================== */
 
 :root {
@@ -43,6 +44,57 @@ body {
     width: 92%;
     max-width: 1100px;
     margin: 0 auto;
+}
+
+/* --- تأثيرات الحركة السلسة التكتيكية (Scroll Reveal Engine - GPU Accelerated) --- */
+.scroll-reveal-item {
+    opacity: 0;
+    transform: translateY(28px) scale(0.985);
+    transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1), transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+
+.scroll-reveal-item.revealed {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* --- صندوق إشعار الدفعة المكتملة الفاخر (Completed Batch Notice) --- */
+.completed-batch-notice {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(15, 23, 42, 0.75));
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.12);
+    animation: pulseBorder 3s infinite ease-in-out;
+}
+
+@keyframes pulseBorder {
+    0%, 100% { border-color: rgba(239, 68, 68, 0.3); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.08); }
+    50% { border-color: rgba(239, 68, 68, 0.6); box-shadow: 0 4px 25px rgba(239, 68, 68, 0.22); }
+}
+
+.batch-notice-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    text-align: right;
+    direction: rtl;
+}
+
+.batch-notice-inner i {
+    color: #ef4444;
+    font-size: 1.15rem;
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+
+.batch-notice-inner span {
+    font-size: 0.84rem;
+    color: #f1f5f9;
+    line-height: 1.6;
+    font-weight: 600;
 }
 
 /* تأثير التموج المائي عند لمس الأزرار (Ripple Effect) */
@@ -1098,7 +1150,7 @@ body {
     margin-top: 16px;
 }
 
-/* --- تنسيقات وثيقة الاعتماد السيبرانية الرسمية (Cyber-Diploma Credential) المحسنة --- */
+/* --- وثيقة الاعتماد السيبرانية الرسمية --- */
 .cyber-diploma {
     background: linear-gradient(135deg, rgba(8, 12, 22, 0.97), rgba(13, 20, 36, 0.99));
     border: 1px solid var(--border-neon);
@@ -1164,7 +1216,6 @@ body {
     margin-bottom: 6px;
 }
 
-/* اسم الخريج متناسق ومضبوط */
 .diploma-trainee-name {
     font-size: 1.35rem;
     font-weight: 900;
@@ -1193,7 +1244,6 @@ body {
     line-height: 1.45;
 }
 
-/* الشبكة المتوازنة 50% / 50% */
 .diploma-meta-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1222,7 +1272,6 @@ body {
     display: block;
 }
 
-/* التذييل والختم السيبراني المستوحى من الشعار */
 .diploma-footer-seal {
     display: flex;
     justify-content: space-between;
@@ -1239,7 +1288,6 @@ body {
     text-align: right;
 }
 
-/* الختم السيبراني التكتيكي - مطابق لروح الشعار الرسمي */
 .diploma-seal-icon {
     width: 48px;
     height: 48px;
@@ -2142,6 +2190,6 @@ footer {
     .back-to-top { bottom: 18px; right: 18px; width: 42px; height: 42px; }
     .btn-quiz-trigger { width: 100%; justify-content: center; font-size: 0.88rem; padding: 12px 14px; }
     .comparison-table th, .comparison-table td { padding: 12px 14px; font-size: 0.85rem; }
-    .diploma-meta-grid { grid-template-columns: 1fr 1fr; } /* شبكة متوازنة في الجوال أيضاً */
+    .diploma-meta-grid { grid-template-columns: 1fr 1fr; }
     .diploma-trainee-name { font-size: 1.25rem; }
 }
