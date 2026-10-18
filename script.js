@@ -1,6 +1,6 @@
 /* ==========================================================================
    أكاديمية ميتركس للتكنولوجيا والإبداع - المحرك التفاعلي البرمجي الشامل (2027)
-   النسخة السحابية المعتمدة - نظام التحكم الشامل، المنصات الثلاثية، ووضع الصيانة
+   النسخة السحابية المعتمدة - نظام التحكم الشامل، المستشار الذكي، ووضع الصيانة
    المطور: صقر المعلوماتية
    ========================================================================== */
 
@@ -22,7 +22,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// حفظ الهيكل الأساسي للدورتين الأصليتين
+let initialBaseCoursesHTML = '';
+
 document.addEventListener('DOMContentLoaded', async () => {
+    const tracksGrid = document.querySelector('.tracks-grid');
+    if (tracksGrid) {
+        initialBaseCoursesHTML = tracksGrid.innerHTML;
+    }
+
     initYearAutoFix();
     initDrawerMenu();
     initButtonRipple();
@@ -31,7 +39,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCourseAccordions();
     initCourseCountdowns();
     initCurrencySwitcher();
-    initTrackQuiz();
     initShareSystem();
     initQuickSearchEngine();
     initBackToTop();
@@ -41,12 +48,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCertificateVerification();
     checkUrlForDirectCertificate(); 
     
-    // تشغيل المحرك السحابي الشامل لمزامنة وضع الصيانة وكامل محتويات المنصة
+    // تشغيل المحرك السحابي الشامل والمستشار الذكي الديناميكي
     await loadDynamicSiteContent();
+    initTrackQuiz();
 });
 
 // ==========================================================================
-// 0. المحرك السحابي المركزي: وضع الصيانة، الإعلانات، المنصات المنفصلة، والدورات
+// 0. المحرك السحابي المركزي: وضع الصيانة، الإعلانات، المنصات، والدورات التراكمية
 // ==========================================================================
 async function loadDynamicSiteContent() {
     try {
@@ -56,13 +64,13 @@ async function loadDynamicSiteContent() {
         if (settingsSnap.exists()) {
             const d = settingsSnap.data();
 
-            // 1. نظام وضع الصيانة الشامل الحصري (يدعم التحرير التلقائي والإلغاء الفوري)
+            // 1. نظام وضع الصيانة الشامل الحصري
             if (d.maintenance_mode === true) {
                 applyMaintenanceModeUI(d);
-                return; // حجب باقي محتوى الموقع تماماً أثناء الصيانة
+                return;
             }
 
-            // 2. التحكم بشريط الإعلانات العلوي (تعديل النص أو حذفه وإخفائه بالكامل)
+            // 2. التحكم بشريط الإعلانات العلوي
             const announceBar = document.querySelector('.announcement-bar');
             if (announceBar) {
                 if (d.announcement_active === false) {
@@ -94,7 +102,7 @@ async function loadDynamicSiteContent() {
             if (d.saqr_tg) document.querySelectorAll('a[href*="t.me/VIlllllllllllP"]').forEach(a => a.href = d.saqr_tg);
             if (d.saqr_wa) document.querySelectorAll('a[href*="wa.me/967713962536"]').forEach(a => a.href = d.saqr_wa);
 
-            // 5. التحكم المنفصل التام بالمنصات السبع (أعلى / جانب / أسفل)
+            // 5. التحكم المنفصل بالمنصات السبع (أعلى / جانب / أسفل)
             // أ) منصات الشريط العلوي (.social-strip)
             if (d.top_tg_url) document.querySelectorAll('.social-strip a.icon-tg').forEach(a => a.href = d.top_tg_url);
             if (d.top_wa_url) document.querySelectorAll('.social-strip a.icon-wa').forEach(a => a.href = d.top_wa_url);
@@ -122,7 +130,7 @@ async function loadDynamicSiteContent() {
             if (d.footer_yt_url) document.querySelectorAll('.footer-socials a.f-yt').forEach(a => a.href = d.footer_yt_url);
             if (d.footer_x_url)  document.querySelectorAll('.footer-socials a.f-x').forEach(a => a.href = d.footer_x_url);
 
-            // د) قنوات التلغرام الثلاث المعتمدة في النافذة المنبثقة (#tgChannelsModal)
+            // د) قنوات التلغرام الثلاث المعتمدة في النافذة المنبثقة
             const tgModalLinks = document.querySelectorAll('#tgChannelsModal .channels-list a.channel-item');
             if (tgModalLinks.length >= 3) {
                 if (d.modal_tg_1_url) tgModalLinks[0].href = d.modal_tg_1_url;
@@ -130,7 +138,7 @@ async function loadDynamicSiteContent() {
                 if (d.modal_tg_3_url) tgModalLinks[2].href = d.modal_tg_3_url;
             }
 
-            // هـ) قنوات الواتساب الثلاث المعتمدة في النافذة المنبثقة (#waChannelsModal)
+            // هـ) قنوات الواتساب الثلاث المعتمدة في النافذة المنبثقة
             const waModalLinks = document.querySelectorAll('#waChannelsModal .channels-list a.channel-item');
             if (waModalLinks.length >= 3) {
                 if (d.modal_wa_1_url) waModalLinks[0].href = d.modal_wa_1_url;
@@ -138,19 +146,22 @@ async function loadDynamicSiteContent() {
                 if (d.modal_wa_3_url) waModalLinks[2].href = d.modal_wa_3_url;
             }
 
-            // دعم الروابط العامة إذا حُدثت من البوابة القديمة
             if (d.tg_official) document.querySelectorAll('a[href*="t.me/MATRIX_ACD"]').forEach(a => a.href = d.tg_official);
             if (d.wa_official) document.querySelectorAll('a[href*="whatsapp.com/channel/0029Vb8kH747IUYLVFqo4p2S"]').forEach(a => a.href = d.wa_official);
+
+            // 6. تطبيق تعديلات الدورتين الأساسيتين من السحابة إذا وُجدت
+            applyBaseCourseModifications(d);
         }
 
-        // 6. المحرك الديناميكي لبناء وتوليد الدورات السحابية اللانهائية
+        // 7. جلب وبناء الدورات السحابية الإضافية التراكمية
         const coursesCol = collection(db, "courses");
         const coursesSnap = await getDocs(coursesCol);
+        const tracksGrid = document.querySelector('.tracks-grid');
 
-        if (!coursesSnap.empty) {
-            const tracksGrid = document.querySelector('.tracks-grid');
-            if (tracksGrid) {
-                let html = '';
+        if (tracksGrid) {
+            let combinedHTML = initialBaseCoursesHTML;
+
+            if (!coursesSnap.empty) {
                 coursesSnap.forEach(docSnap => {
                     const c = docSnap.data();
                     let syllabusList = '';
@@ -173,7 +184,6 @@ async function loadDynamicSiteContent() {
                     const waTarget = c.instructor_wa || "967713962536";
                     const tgTarget = c.instructor_tg || "VIlllllllllllP";
 
-                    // تجهيز جزء العداد التنازلي التكتيكي للدفعة
                     let countdownHtml = '';
                     if (countdownDays > 0) {
                         countdownHtml = `
@@ -190,7 +200,7 @@ async function loadDynamicSiteContent() {
                         `;
                     }
 
-                    html += `
+                    combinedHTML += `
                         <div class="premium-course-card" data-course-id="${docSnap.id}">
                             <div class="course-card-header">
                                 <div class="course-badge">${badge}</div>
@@ -231,20 +241,108 @@ async function loadDynamicSiteContent() {
                         </div>
                     `;
                 });
-
-                tracksGrid.innerHTML = html;
-                
-                // إعادة تنشيط مستمعات الأحداث للبطاقات الجديدة المنشأة سحابياً
-                initCourseAccordions();
-                initBookingSystem();
-                initCurrencySwitcher();
-                initButtonRipple();
-                initCourseCountdowns();
             }
+
+            tracksGrid.innerHTML = combinedHTML;
+            
+            // إعادة تفعيل مستمعات الأحداث والوظائف
+            initCourseAccordions();
+            initBookingSystem();
+            initCurrencySwitcher();
+            initButtonRipple();
+            initCourseCountdowns();
+            updateComparisonTableDynamically(coursesSnap);
         }
     } catch (err) {
         console.log("استخدام المحتوى الافتراضي للهيكل الأساسي:", err);
     }
+}
+
+// تعديل الدورتين الأساسيتين عند وصول تعديلات من السحابة
+function applyBaseCourseModifications(data) {
+    const cards = document.querySelectorAll('.premium-course-card');
+    if (cards.length < 2) return;
+
+    // 1. دورة اللغة الإنجليزية (الكارت الأول)
+    if (data.c_eng_badge) {
+        const b = cards[0].querySelector('.course-badge');
+        if (b) b.innerText = data.c_eng_badge;
+    }
+    if (data.c_eng_price_usd) {
+        const p = cards[0].querySelector('.price-val');
+        if (p) {
+            p.setAttribute('data-usd', data.c_eng_price_usd);
+            p.innerText = data.c_eng_price_usd;
+        }
+    }
+    if (data.c_eng_price_yer) {
+        const p = cards[0].querySelector('.price-val');
+        if (p) p.setAttribute('data-yer', data.c_eng_price_yer);
+    }
+    if (data.c_eng_price_sar) {
+        const p = cards[0].querySelector('.price-val');
+        if (p) p.setAttribute('data-sar', data.c_eng_price_sar);
+    }
+
+    // 2. دورة تطوير الويب والذكاء الاصطناعي (الكارت الثاني)
+    if (data.c_web_badge) {
+        const b = cards[1].querySelector('.course-badge');
+        if (b) b.innerText = data.c_web_badge;
+    }
+    if (data.c_web_price_usd) {
+        const p = cards[1].querySelector('.price-val');
+        if (p) {
+            p.setAttribute('data-usd', data.c_web_price_usd);
+            p.innerText = data.c_web_price_usd;
+        }
+    }
+    if (data.c_web_price_yer) {
+        const p = cards[1].querySelector('.price-val');
+        if (p) p.setAttribute('data-yer', data.c_web_price_yer);
+    }
+    if (data.c_web_price_sar) {
+        const p = cards[1].querySelector('.price-val');
+        if (p) p.setAttribute('data-sar', data.c_web_price_sar);
+    }
+}
+
+// تحديث جدول المقارنة تلقائياً مع دعم التمرير السلس
+function updateComparisonTableDynamically(coursesSnap) {
+    const tableTheadTr = document.querySelector('.comparison-table thead tr');
+    const tableTbody = document.querySelector('.comparison-table tbody');
+    if (!tableTheadTr || !tableTbody || coursesSnap.empty) return;
+
+    if (tableTheadTr.children.length > 3) return;
+
+    coursesSnap.forEach(docSnap => {
+        const c = docSnap.data();
+        const th = document.createElement('th');
+        th.innerHTML = `<i class="${c.icon || 'fas fa-laptop-code'} icon-neon"></i> ${c.title}`;
+        tableTheadTr.appendChild(th);
+
+        const rows = tableTbody.querySelectorAll('tr');
+        if (rows.length >= 5) {
+            const td1 = document.createElement('td');
+            td1.innerText = "تأسيسي إلى احترافي (مشاريع حية ومتابعة)";
+            rows[0].appendChild(td1);
+
+            const td2 = document.createElement('td');
+            td2.innerText = "الكمبيوتر أو الهاتف الذكي (بيئات سحابية وتطبيقات)";
+            rows[1].appendChild(td2);
+
+            const td3 = document.createElement('td');
+            td3.innerText = c.duration || "4 - 5 أسابيع مكثفة";
+            rows[2].appendChild(td3);
+
+            const td4 = document.createElement('td');
+            td4.innerText = "مشاريع عملية معتمدة + كورس تدريبي مساند";
+            rows[3].appendChild(td4);
+
+            const td5 = document.createElement('td');
+            td5.innerText = "شهادة إتمام معتمدة برقم تعريفي موثق 2027";
+            rows[4].appendChild(td5);
+        }
+    });
 }
 
 // دالة حجب واجهة الموقع وعرض شاشة الصيانة التكتيكية الاحترافية
@@ -284,12 +382,11 @@ function applyMaintenanceModeUI(settings) {
                     </div>
                 </div>
 
-                <p style="color: #64748b; font-size: 0.82rem; margin: 0;">🚀 أڪاديمية ميترڪس للتڪنولوجـيـا والإبـداع (2027) | أنظمة التحكم التكتيكية</p>
+                <p style="color: #64748b; font-size: 0.82rem; margin: 0;">🚀 أڪاديمية ميتركس للتكنولوجيا والإبداع (2027) | أنظمة التحكم التكتيكية</p>
             </div>
         </div>
     `;
 
-    // حساب إجمالي الثواني والتحرير التلقائي للموقع عند انتهاء الوقت
     let totalSec = (days * 86400) + (hours * 3600) + (mins * 60);
     const timerInterval = setInterval(() => {
         if (totalSec > 0) {
@@ -304,7 +401,6 @@ function applyMaintenanceModeUI(settings) {
             if (hElem) hElem.innerText = String(h).padStart(2, '0');
             if (mElem) mElem.innerText = String(m).padStart(2, '0');
         } else {
-            // انتهاء وقت الصيانة: تحرير الصفحة تلقائياً
             clearInterval(timerInterval);
             window.location.reload();
         }
@@ -386,7 +482,7 @@ function initCurrencySwitcher() {
     });
 }
 
-// 5. أداة المستشار الذكي لتحديد المسار
+// 5. محرك المستشار الذكي المتكيف كلياً مع جميع الدورات المتاحة
 function initTrackQuiz() {
     const openBtn = document.getElementById('openQuizModal');
     const modal = document.getElementById('quizModal');
@@ -402,23 +498,70 @@ function initTrackQuiz() {
     const resultScore = document.getElementById('resultMatchScore');
     const btnGoToTrack = document.getElementById('btnGoToMatchedTrack');
     if (!openBtn || !modal) return;
+
     const questions = [
-        { q: "1. ما هو مجالك التدريبي المستهدف الذي تبحث عنه حالياً؟", options: [{ text: "تأسيس واحتراف مهارات اللغة الإنجليزية والنطق والقواعد", weight: "english" }, { text: "برمجة وبناء مواقع الويب الحديثة وتوظيف أدوات الذكاء الاصطناعي", weight: "web" }, { text: "أرغب في اكتساب المهارات التقنية والتخاطبية معاً", weight: "both" }] },
-        { q: "2. ما هو الجهاز الرئيسي المتوفر لديك للتطبيق والتعلم؟", options: [{ text: "الهاتف الذكي فقط (متابعة المحاضرات والواجبات اليومية)", weight: "english" }, { text: "كمبيوتر أو لابتوب قياسي لتطبيق الأكواد وإدارة GitHub", weight: "web" }, { text: "أستخدم الهاتف والحاسوب بمرونة", weight: "both" }] },
-        { q: "3. ما هو النمط التعليمي الأكثر جذباً لاهتمامك؟", options: [{ text: "تطوير المفردات اليومية ومحادثات تفاعلية ونطق سليم", weight: "english" }, { text: "كتابة سورس كود، حل أخطاء الأكواد (Debugging)، ونشر المشاريع الحية", weight: "web" }, { text: "الحصول على شهادة معتمدة مع متابعة وإشراف مباشر من المدربين", weight: "both" }] },
-        { q: "4. ما هو الوقت المتاح لديك للدراسة أسبوعياً؟", options: [{ text: "حل تمارين وواجبات يومية مستمرة مع مدرب المتابعة والتصحيح", weight: "english" }, { text: "تطبيق مشاريع أسبوعية مكثفة وبناء معرض أعمال برمجية (Portfolio)", weight: "web" }, { text: "ساعة إلى ساعتين يومياً من التطبيق العملي", weight: "both" }] },
-        { q: "5. ما هو هدفك الاستراتيجي الرئيسي بعد اجتياز البرنامج؟", options: [{ text: "التخاطب بطلاقة وكسر حاجز الخوف في اللغة الإنجليزية", weight: "english" }, { text: "احتراف رفع المواقع على السيرفرات السحابية والعمل الحر كمطور ويب", weight: "web" }, { text: "تطوير مهاراتي الرقمية ومواكبة متطلبات سوق العمل لعام 2027", weight: "both" }] },
-        { q: "6. ما هي الميزة التدريبية التي تفضلها في البداية؟", options: [{ text: "حضور كامل ومحتوى مجاني 100% مع خيار الشهادة المعتمدة", weight: "english" }, { text: "تجربة أول 3 أيام مجانية بالكامل ومفتوحة لاختبار جودة التدريب", weight: "web" }, { text: "مجموعات تفاعلية مغلقة ونقاش مباشر مع كبار المدربين", weight: "both" }] }
+        {
+            q: "1. ما هو المجال التخصصي الأكثر جذباً لطموحك المهني؟",
+            options: [
+                { text: "الأمن السيبراني، تفكيك البرمجيات، واختبار الاختراق التكتيكي", weight: "security" },
+                { text: "بناء مواقع الويب الحديثة وهندسة السيرفرات بالذكاء الاصطناعي", weight: "web" },
+                { text: "احتراف اللغة الإنجليزية والنطق السليم وكسر حاجز التخاطب", weight: "english" },
+                { text: "برمجة بايثون المتقدمة والأتمتة وصناعة الأدوات الذكية", weight: "python" }
+            ]
+        },
+        {
+            q: "2. ما هو الجهاز الذي تعتمد عليه حالياً في التطبيق العملي؟",
+            options: [
+                { text: "الهاتف الذكي فقط وأرغب في دورة تدعم التطبيق المرن بالهاتف", weight: "english" },
+                { text: "جهاز حاسوب أو لابتوب مخصص لكتابة الأكواد واستخدام الأدوات", weight: "security" },
+                { text: "أتنقل بين الهاتف والكمبيوتر بمرونة", weight: "web" }
+            ]
+        },
+        {
+            q: "3. ما هو مستواك الأكاديمي الحالي في المجال المطلوب؟",
+            options: [
+                { text: "من الصفر المطلق وأحتاج لتأسيس منهجي خطوة بخطوة", weight: "english" },
+                { text: "مبتدئ ولدي شغف بالتطبيق والمشاريع الحية العميقة", weight: "web" },
+                { text: "متوسط وأرغب في صقل مهاراتي المتقدمة بسوق العمل", weight: "security" }
+            ]
+        },
+        {
+            q: "4. ما هو النمط التدريبي الذي تفضله لضمان الاستيعاب؟",
+            options: [
+                { text: "واجبات وتصحيح يومي مباشر مع كادر المتابعة المتفرغ", weight: "english" },
+                { text: "بناء معرض أعمال برمجية حي (Portfolio) على منصة GitHub", weight: "web" },
+                { text: "تطبيق سيناريوهات محاكاة حقيقية واكتشاف ثغرات أمنية", weight: "security" }
+            ]
+        },
+        {
+            q: "5. ما هو هدفك الاستراتيجي الرئيسي لعام 2027؟",
+            options: [
+                { text: "العمل الحر عن بعد (Freelancing) كمطور ويب معتمد", weight: "web" },
+                { text: "التخصص الميداني في مسار الفريق الأحمر (Red Teaming)", weight: "security" },
+                { text: "التحدث بطلاقة واكتساب لغة تقنية تعزز فرضي المهنية", weight: "english" }
+            ]
+        },
+        {
+            q: "6. ما هي الميزة التدريبية التي تهمك أكثر عند الانطلاق؟",
+            options: [
+                { text: "تجربة الأيام الأولى مجاناً بالكامل للتأكد من جودة الشرح", weight: "web" },
+                { text: "حضور كامل ومحتوى مفتوح مع خيار استخراج الشهادة المعتمدة", weight: "english" },
+                { text: "شهادة معتمدة مشفرة برقم تعريفي مع متابعة مباشرة من المدربين", weight: "security" }
+            ]
+        }
     ];
+
     let currentStep = 0;
-    let scores = { english: 0, web: 0 };
+    let categoryScores = { security: 0, web: 0, english: 0, python: 0 };
     let matchedCourseName = '';
+
     openBtn.addEventListener('click', (e) => {
         e.preventDefault();
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
         resetQuiz();
     });
+
     if (closeBtn) {
         closeBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -426,18 +569,21 @@ function initTrackQuiz() {
             document.body.style.overflow = '';
         });
     }
+
     function resetQuiz() {
         currentStep = 0;
-        scores = { english: 0, web: 0 };
+        categoryScores = { security: 0, web: 0, english: 0, python: 0 };
         quizContent.style.display = 'block';
         resultView.style.display = 'none';
         renderQuestion();
     }
+
     function renderQuestion() {
         const item = questions[currentStep];
         questionText.innerText = item.q;
         stepLabel.innerText = `السؤال ${currentStep + 1} من ${questions.length}`;
         progressFill.style.width = `${((currentStep + 1) / questions.length) * 100}%`;
+
         optionsGrid.innerHTML = '';
         item.options.forEach(opt => {
             const btn = document.createElement('button');
@@ -447,29 +593,61 @@ function initTrackQuiz() {
             optionsGrid.appendChild(btn);
         });
     }
+
     function handleOptionClick(weight) {
-        if (weight === 'english') scores.english += 2;
-        else if (weight === 'web') scores.web += 2;
-        else { scores.english += 1; scores.web += 1; }
+        if (categoryScores[weight] !== undefined) {
+            categoryScores[weight] += 2;
+        }
+
         currentStep++;
-        if (currentStep < questions.length) renderQuestion();
-        else showDiagnosticResult();
+        if (currentStep < questions.length) {
+            renderQuestion();
+        } else {
+            showDiagnosticResult();
+        }
     }
+
     function showDiagnosticResult() {
         quizContent.style.display = 'none';
         resultView.style.display = 'block';
-        if (scores.web >= scores.english) {
-            matchedCourseName = "بناء وتطوير مواقع الويب بالذكاء الاصطناعي";
-            resultTitle.innerText = "دورة بناء وتطوير مواقع الويب المتقدمة بالذكاء الاصطناعي";
-            resultDesc.innerText = "بناءً على اهتمامك بالتقنية وبناء المشاريع البرمجية واحتراف GitHub ونشر المواقع الحية، هذا المسار سينقلك لمستوى احترافي عالٍ.";
-            resultScore.innerText = "نسبة التوافق: 96% 💻";
-        } else {
-            matchedCourseName = "دورة اللغة الإنجليزية المتكاملة";
-            resultTitle.innerText = "دورة اللغة الإنجليزية المتكاملة (Foundations & Grammar)";
-            resultDesc.innerText = "بناءً على رغبتك في التأسيس اللغوي السليم والمتابعة اليومية مع الكادر المتفرغ، هذا البرنامج سيصقل مهاراتك التخاطبية والنحوية من الصفر.";
-            resultScore.innerText = "نسبة التوافق: 95% 📘";
+
+        // استكشاف كافة الدورات المتواجدة فعلياً في الصفحة
+        const allAvailableCards = Array.from(document.querySelectorAll('.premium-course-card'));
+        const availableTitles = allAvailableCards.map(c => {
+            const t = c.querySelector('.course-title');
+            return t ? t.innerText.trim() : '';
+        }).filter(t => t.length > 0);
+
+        // تحديد الفئة الأعلى تصويتاً
+        let winningCategory = 'web';
+        let maxScore = -1;
+        for (const [cat, score] of Object.entries(categoryScores)) {
+            if (score > maxScore) {
+                maxScore = score;
+                winningCategory = cat;
+            }
         }
+
+        // مطابقة الفئة مع دورة متوفرة فعلياً في الصفحة
+        let targetTitle = '';
+        if (winningCategory === 'security') {
+            targetTitle = availableTitles.find(t => t.includes('سيبراني') || t.includes('هندسة') || t.includes('عكسية') || t.includes('أمن') || t.includes('ريد تيم'));
+        } else if (winningCategory === 'english') {
+            targetTitle = availableTitles.find(t => t.includes('إنجليزية') || t.includes('لغة') || t.includes('English'));
+        } else if (winningCategory === 'python') {
+            targetTitle = availableTitles.find(t => t.includes('بايثون') || t.includes('Python') || t.includes('أتمتة'));
+        }
+
+        if (!targetTitle) {
+            targetTitle = availableTitles.find(t => t.includes('الويب') || t.includes('الذكاء') || t.includes('Web')) || availableTitles[0] || "المسار التدريبي المعتمد";
+        }
+
+        matchedCourseName = targetTitle;
+        resultTitle.innerText = matchedCourseName;
+        resultDesc.innerText = `بناءً على اهتماماتك الميدانية وطبيعة جهازك، تم تحليل ملفك ومطابقته بدقة عالية مع هذا البرنامج التدريبي المعتمد.`;
+        resultScore.innerText = `نسبة التوافق التكتيكي: 97% 🎯`;
     }
+
     if (btnGoToTrack) {
         btnGoToTrack.addEventListener('click', (e) => {
             e.preventDefault();
@@ -478,8 +656,13 @@ function initTrackQuiz() {
             window.location.hash = '#tracks';
             setTimeout(() => {
                 const bookBtn = Array.from(document.querySelectorAll('.open-booking-btn')).find(b => b.getAttribute('data-course') === matchedCourseName);
-                if (bookBtn) bookBtn.click();
-            }, 300);
+                if (bookBtn) {
+                    bookBtn.click();
+                } else {
+                    const fallbackBtn = document.querySelector('.open-booking-btn');
+                    if (fallbackBtn) fallbackBtn.click();
+                }
+            }, 350);
         });
     }
 }
@@ -494,7 +677,7 @@ function initShareSystem() {
     const copyBtn = document.getElementById('copyShareLinkBtn');
     const alertBox = document.getElementById('copyAlertMsg');
     if (!openBtn || !modal) return;
-    const promoMessage = `🚀 بوابتك نحو احتراف التقنيات واللغات ومواكبة الذكاء الاصطناعي لعام 2027!\nانضم الآن إلى منصة أڪاديمية ميترڪس للتڪنولوجـيـا والإبـداع:\n${window.location.href}`;
+    const promoMessage = `🚀 بوابتك نحو احتراف التقنيات واللغات ومواكبة الذكاء الاصطناعي لعام 2027!\nانضم الآن إلى منصة أڪاديمية ميتركس للتكنولوجيا والإبداع:\n${window.location.href}`;
     openBtn.addEventListener('click', (e) => {
         e.preventDefault();
         modal.classList.add('active');
@@ -509,7 +692,7 @@ function initShareSystem() {
         });
     }
     if (shareWaBtn) shareWaBtn.href = `https://wa.me/?text=${encodeURIComponent(promoMessage)}`;
-    if (shareTgBtn) shareTgBtn.href = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent('🚀 انضم الآن إلى منصة أڪاديمية ميترڪس للتڪنولوجـيـا والإبـداع 2027')}`;
+    if (shareTgBtn) shareTgBtn.href = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent('🚀 انضم الآن إلى منصة أڪاديمية ميتركس للتكنولوجيا والإبداع 2027')}`;
     if (copyBtn) {
         copyBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -615,7 +798,7 @@ function initCourseCountdowns() {
     });
 }
 
-// 11. محرك البحث السريع اللحظي
+// 11. محرك البحث السريع اللحظي الديناميكي بالكامل
 function initQuickSearchEngine() {
     const openBtn = document.getElementById('openSearchBtn');
     const modal = document.getElementById('searchModal');
@@ -623,24 +806,14 @@ function initQuickSearchEngine() {
     const input = document.getElementById('quickSearchInput');
     const resultsBox = document.getElementById('searchResultsBox');
     if (!openBtn || !modal || !input || !resultsBox) return;
-    const searchIndex = [
-        { title: 'دورة اللغة الإنجليزية المتكاملة (Foundations & Grammar)', cat: 'المسارات الحالية', link: '#tracks' },
-        { title: 'بناء وتطوير مواقع الويب المتقدمة بالذكاء الاصطناعي', cat: 'المسارات القادمة', link: '#tracks' },
-        { title: 'جدول المقارنة بين المسارات التدريبية', cat: 'المقارنات التكتيكية', link: '#comparison' },
-        { title: 'المستشار الذكي لتحديد مسارك التدريبي', cat: 'أدوات المنصة', link: '#tracks' },
-        { title: 'المدير الأول: إدريس الإدريسي (مدير ومهندس الأكاديمية)', cat: 'القيادة والإشراف', link: '#about' },
-        { title: 'المدير الثاني: صقر المعلوماتية (الريد تيم وتطوير الويب)', cat: 'القيادة والتدريب', link: '#about' },
-        { title: 'نظام فحص وتوثيق الشهادات الرقمية المعتمدة', cat: 'الشهادات والاعتمادات', link: '#verifySection' },
-        { title: 'قنواتنا الرسمية المعتمدة على التلغرام', cat: 'مجتمعات الأكاديمية', link: '#community' },
-        { title: 'قنواتنا الرسمية المعتمدة على الواتساب', cat: 'مجتمعات الأكاديمية', link: '#community' },
-        { title: 'الأسئلة الشائعة والأجهزة والتصحيح اليومي', cat: 'الأسئلة الشائعة', link: '#faq' }
-    ];
+
     openBtn.addEventListener('click', (e) => {
         e.preventDefault();
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
         setTimeout(() => input.focus(), 150);
     });
+
     if (closeBtn) {
         closeBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -650,15 +823,49 @@ function initQuickSearchEngine() {
             renderResults([]);
         });
     }
+
     input.addEventListener('input', (e) => {
         const query = e.target.value.trim().toLowerCase();
         if (!query) {
             resultsBox.innerHTML = '<div class="search-hint"><i class="fas fa-keyboard"></i> اكتب كلمة البحث للانتقال المباشر لأي قسم...</div>';
             return;
         }
-        const filtered = searchIndex.filter(item => item.title.toLowerCase().includes(query) || item.cat.toLowerCase().includes(query));
+
+        // بناء فهرس البحث لحظياً من العناصر المعروضة فعلياً في الصفحة
+        const dynamicSearchIndex = [];
+
+        // 1. جلب الدورات المتواجدة فعلياً في الصفحة
+        document.querySelectorAll('.premium-course-card').forEach(card => {
+            const titleElem = card.querySelector('.course-title');
+            if (titleElem && titleElem.innerText.trim()) {
+                dynamicSearchIndex.push({
+                    title: titleElem.innerText.trim(),
+                    cat: 'المسارات التدريبية المتاحة',
+                    link: '#tracks'
+                });
+            }
+        });
+
+        // 2. العناصر الثابتة المتبقية
+        dynamicSearchIndex.push(
+            { title: 'جدول المقارنة بين المسارات التدريبية', cat: 'المقارنات التكتيكية', link: '#comparison' },
+            { title: 'المستشار الذكي لتحديد مسارك التدريبي', cat: 'أدوات المنصة', link: '#tracks' },
+            { title: 'المدير الأول: إدريس الإدريسي (مدير ومهندس الأكاديمية)', cat: 'القيادة والإشراف', link: '#about' },
+            { title: 'المدير الثاني: صقر المعلوماتية (الريد تيم وتطوير الويب)', cat: 'القيادة والتدريب', link: '#about' },
+            { title: 'نظام فحص وتوثيق الشهادات الرقمية المعتمدة', cat: 'الشهادات والاعتمادات', link: '#verifySection' },
+            { title: 'قنواتنا الرسمية المعتمدة على التلغرام', cat: 'مجتمعات الأكاديمية', link: '#community' },
+            { title: 'قنواتنا الرسمية المعتمدة على الواتساب', cat: 'مجتمعات الأكاديمية', link: '#community' },
+            { title: 'الأسئلة الشائعة والأجهزة والتصحيح اليومي', cat: 'الأسئلة الشائعة', link: '#faq' }
+        );
+
+        const filtered = dynamicSearchIndex.filter(item => 
+            item.title.toLowerCase().includes(query) || 
+            item.cat.toLowerCase().includes(query)
+        );
+
         renderResults(filtered);
     });
+
     function renderResults(list) {
         if (list.length === 0) {
             resultsBox.innerHTML = '<div class="search-hint"><i class="fas fa-search-minus"></i> لا توجد نتائج مطابقة لبحثك</div>';
