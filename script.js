@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initAboutAccordion();
     initFaqAccordion();
     initCourseAccordions();
-    initCourseCountdowns();
     initCurrencySwitcher();
     initShareSystem();
     initQuickSearchEngine();
@@ -61,9 +60,11 @@ async function loadDynamicSiteContent() {
     try {
         const settingsRef = doc(db, "site_settings", "main");
         const settingsSnap = await getDoc(settingsRef);
+        let siteSettingsData = {};
 
         if (settingsSnap.exists()) {
-            const d = settingsSnap.data();
+            siteSettingsData = settingsSnap.data();
+            const d = siteSettingsData;
 
             // 1. نظام وضع الصيانة الشامل الحصري
             if (d.maintenance_mode === true) {
@@ -103,8 +104,7 @@ async function loadDynamicSiteContent() {
             if (d.saqr_tg) document.querySelectorAll('a[href*="t.me/VIlllllllllllP"]').forEach(a => a.href = d.saqr_tg);
             if (d.saqr_wa) document.querySelectorAll('a[href*="wa.me/967713962536"]').forEach(a => a.href = d.saqr_wa);
 
-            // 5. التحكم المنفصل بالمنصات السبع (أعلى / جانب / أسفل)
-            // أ) منصات الشريط العلوي (.social-strip)
+            // 5. التحكم بالمنصات السبع (أعلى / جانب / أسفل)
             if (d.top_tg_url) document.querySelectorAll('.social-strip a.icon-tg').forEach(a => a.href = d.top_tg_url);
             if (d.top_wa_url) document.querySelectorAll('.social-strip a.icon-wa').forEach(a => a.href = d.top_wa_url);
             if (d.top_fb_url) document.querySelectorAll('.social-strip a.icon-fb').forEach(a => a.href = d.top_fb_url);
@@ -113,7 +113,6 @@ async function loadDynamicSiteContent() {
             if (d.top_yt_url) document.querySelectorAll('.social-strip a.icon-yt').forEach(a => a.href = d.top_yt_url);
             if (d.top_x_url)  document.querySelectorAll('.social-strip a.icon-x').forEach(a => a.href = d.top_x_url);
 
-            // ب) منصات القائمة الجانبية (.drawer-socials)
             if (d.drawer_tg_url) document.querySelectorAll('.drawer-socials a.s-tg').forEach(a => a.href = d.drawer_tg_url);
             if (d.drawer_wa_url) document.querySelectorAll('.drawer-socials a.s-wa').forEach(a => a.href = d.drawer_wa_url);
             if (d.drawer_fb_url) document.querySelectorAll('.drawer-socials a.s-fb').forEach(a => a.href = d.drawer_fb_url);
@@ -122,7 +121,6 @@ async function loadDynamicSiteContent() {
             if (d.drawer_yt_url) document.querySelectorAll('.drawer-socials a.s-yt').forEach(a => a.href = d.drawer_yt_url);
             if (d.drawer_x_url)  document.querySelectorAll('.drawer-socials a.s-x').forEach(a => a.href = d.drawer_x_url);
 
-            // ج) منصات الفوتر السفلي (.footer-socials)
             if (d.footer_tg_url) document.querySelectorAll('.footer-socials a.f-tg').forEach(a => a.href = d.footer_tg_url);
             if (d.footer_wa_url) document.querySelectorAll('.footer-socials a.f-wa').forEach(a => a.href = d.footer_wa_url);
             if (d.footer_fb_url) document.querySelectorAll('.footer-socials a.f-fb').forEach(a => a.href = d.footer_fb_url);
@@ -131,7 +129,6 @@ async function loadDynamicSiteContent() {
             if (d.footer_yt_url) document.querySelectorAll('.footer-socials a.f-yt').forEach(a => a.href = d.footer_yt_url);
             if (d.footer_x_url)  document.querySelectorAll('.footer-socials a.f-x').forEach(a => a.href = d.footer_x_url);
 
-            // د) قنوات التلغرام الثلاث المعتمدة في النافذة المنبثقة
             const tgModalLinks = document.querySelectorAll('#tgChannelsModal .channels-list a.channel-item');
             if (tgModalLinks.length >= 3) {
                 if (d.modal_tg_1_url) tgModalLinks[0].href = d.modal_tg_1_url;
@@ -139,7 +136,6 @@ async function loadDynamicSiteContent() {
                 if (d.modal_tg_3_url) tgModalLinks[2].href = d.modal_tg_3_url;
             }
 
-            // هـ) قنوات الواتساب الثلاث المعتمدة في النافذة المنبثقة
             const waModalLinks = document.querySelectorAll('#waChannelsModal .channels-list a.channel-item');
             if (waModalLinks.length >= 3) {
                 if (d.modal_wa_1_url) waModalLinks[0].href = d.modal_wa_1_url;
@@ -149,12 +145,9 @@ async function loadDynamicSiteContent() {
 
             if (d.tg_official) document.querySelectorAll('a[href*="t.me/MATRIX_ACD"]').forEach(a => a.href = d.tg_official);
             if (d.wa_official) document.querySelectorAll('a[href*="whatsapp.com/channel/0029Vb8kH747IUYLVFqo4p2S"]').forEach(a => a.href = d.wa_official);
-
-            // 6. تطبيق تعديلات الدورتين الأساسيتين (الشارات الذكية، الأسعار، العدادات، والنبذات)
-            applyBaseCourseModifications(d);
         }
 
-        // 7. جلب وبناء الدورات السحابية الإضافية التراكمية
+        // 6. بناء وعرض الدورات السحابية + دمج وتعديل دورتي الأساس
         const coursesCol = collection(db, "courses");
         const coursesSnap = await getDocs(coursesCol);
         const tracksGrid = document.querySelector('.tracks-grid');
@@ -244,9 +237,15 @@ async function loadDynamicSiteContent() {
                 });
             }
 
+            // تحديث DOM مرة واحدة لضمان استقرار الصفحة
             tracksGrid.innerHTML = combinedHTML;
+
+            // تطبيق تعديلات دورتي الأساس فوراً بعد رسم الـ DOM
+            if (Object.keys(siteSettingsData).length > 0) {
+                applyBaseCourseModifications(siteSettingsData);
+            }
             
-            // إعادة تفعيل مستمعات الأحداث والوظائف
+            // إعادة تفعيل الوظائف والأحداث
             initCourseAccordions();
             initBookingSystem();
             initCurrencySwitcher();
@@ -256,62 +255,75 @@ async function loadDynamicSiteContent() {
             initScrollReveal();
         }
     } catch (err) {
-        console.log("استخدام المحتوى الافتراضي للهيكل الأساسي:", err);
+        console.error("خطأ في جلب المحتوى السحابي:", err);
     }
 }
 
-// تعديل الدورتين الأساسيتين وفق بيانات السحابة (مع معالجة المقاعد المكتملة وإخفاء العداد)
+// تطبيق تعديلات دورتي الأساس بشكل قطعي وجذري
 function applyBaseCourseModifications(data) {
     const cards = document.querySelectorAll('.premium-course-card');
     if (cards.length < 2) return;
 
     const setupBaseCard = (card, prefix) => {
-        // الشارة
+        // 1. تحديث الشارة
         if (data[`${prefix}_badge`]) {
             const b = card.querySelector('.course-badge');
             if (b) b.innerText = data[`${prefix}_badge`];
         }
 
-        // الأسعار
+        // 2. تحديث الأسعار بمراعاة العملة المختارة حالياً
         const p = card.querySelector('.price-val');
         if (p) {
-            if (data[`${prefix}_price_usd`]) {
-                p.setAttribute('data-usd', data[`${prefix}_price_usd`]);
-                p.innerText = data[`${prefix}_price_usd`];
-            }
+            if (data[`${prefix}_price_usd`]) p.setAttribute('data-usd', data[`${prefix}_price_usd`]);
             if (data[`${prefix}_price_yer`]) p.setAttribute('data-yer', data[`${prefix}_price_yer`]);
             if (data[`${prefix}_price_sar`]) p.setAttribute('data-sar', data[`${prefix}_price_sar`]);
+
+            const activeBtn = document.querySelector('.currency-btn.active');
+            const curr = activeBtn ? activeBtn.getAttribute('data-curr') : 'USD';
+            if (curr === 'YER' && data[`${prefix}_price_yer`]) p.innerText = data[`${prefix}_price_yer`];
+            else if (curr === 'SAR' && data[`${prefix}_price_sar`]) p.innerText = data[`${prefix}_price_sar`];
+            else if (data[`${prefix}_price_usd`]) p.innerText = data[`${prefix}_price_usd`];
         }
 
-        // النبذة والمحاور
+        // 3. تحديث النبذة
         if (data[`${prefix}_desc`]) {
             const descElem = card.querySelector('.course-desc');
             if (descElem) descElem.innerText = data[`${prefix}_desc`];
         }
 
-        // فحص حالة الدورة: هل هي مكتملة المقاعد أم لا
+        // 4. حذف العبارة القديمة بشكل حاسم وقطعي أياً كان نوع الـ Tag
+        card.querySelectorAll('div, p, span').forEach(el => {
+            if (el.classList.contains('completed-batch-notice') || 
+                el.classList.contains('course-price-box') || 
+                el.classList.contains('course-desc') || 
+                el.classList.contains('course-accordion')) return;
+
+            const text = el.innerText || '';
+            if (text.includes('انطلقت قبل أسبوعين') || text.includes('جارية حالياً') || text.includes('ترقبوا فتح باب التسجيل')) {
+                el.remove();
+            }
+        });
+
+        // 5. فحص حالة المقاعد (مكتملة أم مفتوحة)
         const isFull = (data[`${prefix}_status`] === 'full') || 
                        (data[`${prefix}_badge`] && data[`${prefix}_badge`].includes('مكتملة'));
 
         let countdownBox = card.querySelector('.course-countdown');
         let completedBox = card.querySelector('.completed-batch-notice');
+        const priceBox = card.querySelector('.course-price-box');
 
         if (isFull) {
-            // إخفاء العداد التنازلي تماماً
+            // إخفاء أي عداد
             if (countdownBox) countdownBox.style.display = 'none';
 
-            // نص الإشعار البديل
             const noticeText = data[`${prefix}_notice`] || 
                 "📌 إشعار الدفعة: اكتملت المقاعد المخصصة لهذه الدورة بنجاح، وقد تم انطلاق البرنامج مسبقاً. في حال إطلاق دفعة جديدة سيتم الإعلان عنها واعتمادها رسمياً هنا عبر المنصة.";
 
             if (!completedBox) {
                 completedBox = document.createElement('div');
                 completedBox.className = 'completed-batch-notice';
-                
-                // إضافة الصندوق البديل الفاخر بعد صندوق السعر مباشرة
-                const priceBox = card.querySelector('.course-price-box');
-                if (priceBox && priceBox.nextSibling) {
-                    priceBox.parentNode.insertBefore(completedBox, priceBox.nextSibling);
+                if (priceBox) {
+                    priceBox.insertAdjacentElement('afterend', completedBox);
                 } else {
                     card.appendChild(completedBox);
                 }
@@ -325,7 +337,7 @@ function applyBaseCourseModifications(data) {
                 </div>
             `;
         } else {
-            // إذا كانت متاحة للتسجيل أو حجز مبكر
+            // المقاعد مفتوحة: إخفاء صندوق الإشعار وإظهار العداد
             if (completedBox) completedBox.style.display = 'none';
 
             const days = parseInt(data[`${prefix}_countdown_days`]);
@@ -333,9 +345,10 @@ function applyBaseCourseModifications(data) {
                 if (!countdownBox) {
                     countdownBox = document.createElement('div');
                     countdownBox.className = 'course-countdown';
-                    const priceBox = card.querySelector('.course-price-box');
-                    if (priceBox && priceBox.nextSibling) {
-                        priceBox.parentNode.insertBefore(countdownBox, priceBox.nextSibling);
+                    if (priceBox) {
+                        priceBox.insertAdjacentElement('afterend', countdownBox);
+                    } else {
+                        card.appendChild(countdownBox);
                     }
                 }
                 countdownBox.style.display = 'block';
@@ -351,16 +364,14 @@ function applyBaseCourseModifications(data) {
                         <div class="timer-unit"><span class="timer-val mins-val">00</span><small>دقيقة</small></div>
                     </div>
                 `;
-            } else if (days === 0 && countdownBox) {
+            } else if (countdownBox) {
                 countdownBox.style.display = 'none';
             }
         }
     };
 
-    // 1. دورة اللغة الإنجليزية (الكارت الأول)
+    // تطبيق التعديل على الكارت الأول والثاني
     setupBaseCard(cards[0], 'c_eng');
-
-    // 2. دورة تطوير الويب والذكاء الاصطناعي (الكارت الثاني)
     setupBaseCard(cards[1], 'c_web');
 }
 
@@ -392,13 +403,12 @@ function initScrollReveal() {
 
     revealElements.forEach((el, index) => {
         el.classList.add('scroll-reveal-item');
-        // تأخير تدريجي خفيف جداً للأزرار والبطاقات المتجاورة
         el.style.transitionDelay = `${(index % 3) * 0.08}s`;
         revealObserver.observe(el);
     });
 }
 
-// تحديث جدول المقارنة تلقائياً مع دعم التمرير السلس
+// تحديث جدول المقارنة تلقائياً
 function updateComparisonTableDynamically(coursesSnap) {
     const tableTheadTr = document.querySelector('.comparison-table thead tr');
     const tableTbody = document.querySelector('.comparison-table tbody');
@@ -437,7 +447,7 @@ function updateComparisonTableDynamically(coursesSnap) {
     });
 }
 
-// دالة حجب واجهة الموقع وعرض شاشة الصيانة التكتيكية الاحترافية
+// دالة وضع الصيانة التكتيكي
 function applyMaintenanceModeUI(settings) {
     const title = settings.maintenance_title || "الموقع في وضع الصيانة والتحديث الدوري 🛠️";
     const desc = settings.maintenance_desc || "عذراً عزيزي الزائر، تجري إدارة أكاديمية ميتركس حالياً عمليات تطوير وترقية دورية للبنية التحتية.";
@@ -703,14 +713,12 @@ function initTrackQuiz() {
         quizContent.style.display = 'none';
         resultView.style.display = 'block';
 
-        // استكشاف كافة الدورات المتواجدة فعلياً في الصفحة
         const allAvailableCards = Array.from(document.querySelectorAll('.premium-course-card'));
         const availableTitles = allAvailableCards.map(c => {
             const t = c.querySelector('.course-title');
             return t ? t.innerText.trim() : '';
         }).filter(t => t.length > 0);
 
-        // تحديد الفئة الأعلى تصويتاً
         let winningCategory = 'web';
         let maxScore = -1;
         for (const [cat, score] of Object.entries(categoryScores)) {
@@ -720,7 +728,6 @@ function initTrackQuiz() {
             }
         }
 
-        // مطابقة الفئة مع دورة متوفرة فعلياً في الصفحة
         let targetTitle = '';
         if (winningCategory === 'security') {
             targetTitle = availableTitles.find(t => t.includes('سيبراني') || t.includes('هندسة') || t.includes('عكسية') || t.includes('أمن') || t.includes('ريد تيم'));
@@ -736,7 +743,7 @@ function initTrackQuiz() {
 
         matchedCourseName = targetTitle;
         resultTitle.innerText = matchedCourseName;
-        resultDesc.innerText = `بناءً على اهتماماتك الميدانية وطبيعة جهازك، تم تحليل ملفك ومطابقته بدقة عالية مع هذا البرنامج التدريبي المعتمد.`;
+        resultDesc.innerText = `بناءً على اهتماماتك وطبيعة جهازك، تم تحليل رغباتك ومطابقتها بدقة عالية مع هذا البرنامج التدريبي المعتمد.`;
         resultScore.innerText = `نسبة التوافق التكتيكي: 97% 🎯`;
     }
 
@@ -866,13 +873,17 @@ function initCourseAccordions() {
 function initCourseCountdowns() {
     const countdowns = document.querySelectorAll('.course-countdown');
     countdowns.forEach(item => {
+        if (item._countdownInterval) clearInterval(item._countdownInterval);
+
         let totalSeconds = (parseInt(item.getAttribute('data-days')) || 4) * 86400 + (parseInt(item.getAttribute('data-hours')) || 12) * 3600;
         const daysElem = item.querySelector('.days-val');
         const hoursElem = item.querySelector('.hours-val');
         const minsElem = item.querySelector('.mins-val');
+
         function updateTimer() {
             if (totalSeconds <= 0) {
                 item.innerHTML = '<span style="color: #ef4444; font-weight: 700; font-size: 0.88rem;"><i class="fas fa-exclamation-triangle"></i> انتهت فترة الحجز لهذه الدفعة</span>';
+                if (item._countdownInterval) clearInterval(item._countdownInterval);
                 return;
             }
             const d = Math.floor(totalSeconds / 86400);
@@ -883,9 +894,10 @@ function initCourseCountdowns() {
             if (minsElem) minsElem.innerText = String(m).padStart(2, '0');
             totalSeconds--;
         }
+
         if (daysElem && hoursElem && minsElem) {
             updateTimer();
-            setInterval(updateTimer, 1000);
+            item._countdownInterval = setInterval(updateTimer, 1000);
         }
     });
 }
@@ -923,10 +935,8 @@ function initQuickSearchEngine() {
             return;
         }
 
-        // بناء فهرس البحث لحظياً من العناصر المعروضة فعلياً في الصفحة
         const dynamicSearchIndex = [];
 
-        // 1. جلب الدورات المتواجدة فعلياً في الصفحة
         document.querySelectorAll('.premium-course-card').forEach(card => {
             const titleElem = card.querySelector('.course-title');
             if (titleElem && titleElem.innerText.trim()) {
@@ -938,7 +948,6 @@ function initQuickSearchEngine() {
             }
         });
 
-        // 2. العناصر الثابتة المتبقية
         dynamicSearchIndex.push(
             { title: 'جدول المقارنة بين المسارات التدريبية', cat: 'المقارنات التكتيكية', link: '#comparison' },
             { title: 'المستشار الذكي لتحديد مسارك التدريبي', cat: 'أدوات المنصة', link: '#tracks' },
