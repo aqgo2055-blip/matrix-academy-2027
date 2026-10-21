@@ -1,6 +1,6 @@
 /* ==========================================================================
    أكاديمية ميتركس للتكنولوجيا والإبداع - المحرك التفاعلي البرمجي الشامل (2027)
-   النسخة السحابية المعتمدة - نظام التحكم الشامل، الشارات التفاعلية، وتأثيرات التمرير
+   النسخة السحابية المعتمدة v4.8 - توافق كامل مع البوت، الشارات الملونة، وتأثيرات التمرير
    المطور: صقر المعلوماتية
    ========================================================================== */
 
@@ -52,6 +52,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     initTrackQuiz();
     initScrollReveal();
 });
+
+// دالة مساعدة لتلوين شارة الدورة تلقائياً حسب حالتها (أخضر / أصفر / أحمر)
+function getBadgeInlineStyle(badgeText) {
+    const text = badgeText || '';
+    if (text.includes('مكتملة') || text.includes('🔴')) {
+        return 'color: #ef4444; border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08);';
+    } else if (text.includes('قريباً') || text.includes('مبكر') || text.includes('🟡')) {
+        return 'color: #facc15; border-color: rgba(250, 204, 21, 0.35); background: rgba(250, 204, 21, 0.08);';
+    } else {
+        return 'color: #4ade80; border-color: rgba(74, 222, 128, 0.25); background: rgba(74, 222, 128, 0.08);';
+    }
+}
+
+function applyDynamicBadgeStyle(badgeElem, badgeText) {
+    if (!badgeElem) return;
+    badgeElem.innerText = badgeText;
+    badgeElem.setAttribute('style', getBadgeInlineStyle(badgeText));
+}
 
 // ==========================================================================
 // 0. المحرك السحابي المركزي: وضع الصيانة، الإعلانات، المنصات، والدورات التراكمية
@@ -162,12 +180,21 @@ async function loadDynamicSiteContent() {
                     if (c.syllabus && Array.isArray(c.syllabus)) {
                         syllabusList = c.syllabus.map(item => `<li><i class="fas fa-check-circle"></i> ${item}</li>`).join('');
                     } else if (c.description) {
-                        syllabusList = `<li><i class="fas fa-check-circle"></i> ${c.description}</li>`;
+                        const lines = c.description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                        if (lines.length > 1) {
+                            syllabusList = lines.map(item => `<li><i class="fas fa-check-circle"></i> ${item}</li>`).join('');
+                        } else {
+                            syllabusList = `
+                                <li><i class="fas fa-check-circle"></i> ${c.description}</li>
+                                <li><i class="fas fa-check-circle"></i> تطبيق عملي ومشاريع حية ومتابعة مستمرة من المدرب.</li>
+                            `;
+                        }
                     } else {
                         syllabusList = `<li><i class="fas fa-check-circle"></i> تطبيق عملي ومشاريع حية ومتابعة مستمرة من المدرب.</li>`;
                     }
 
                     const badge = c.badge || "متاح للتسجيل 🟢";
+                    const badgeStyle = getBadgeInlineStyle(badge);
                     const duration = c.duration || "4 أسابيع مكثفة";
                     const instructor = c.instructor || "صقر المعلوماتية";
                     const iconClass = c.icon || "fas fa-laptop-code";
@@ -178,9 +205,22 @@ async function loadDynamicSiteContent() {
                     const waTarget = c.instructor_wa || "967713962536";
                     const tgTarget = c.instructor_tg || "VIlllllllllllP";
 
-                    let countdownHtml = '';
-                    if (countdownDays > 0) {
-                        countdownHtml = `
+                    // فحص هل الدورة السحابية مكتملة المقاعد أم متاحة
+                    const isCourseFull = (c.status === 'full') || badge.includes('مكتملة') || badge.includes('🔴');
+
+                    let statusOrCountdownHtml = '';
+                    if (isCourseFull) {
+                        const noticeMsg = c.notice || "📌 إشعار الدفعة: اكتملت المقاعد المخصصة لهذه الدورة بنجاح، وقد تم انطلاق البرنامج مسبقاً. في حال إطلاق دفعة جديدة سيتم الإعلان عنها واعتمادها رسمياً هنا عبر المنصة.";
+                        statusOrCountdownHtml = `
+                            <div class="completed-batch-notice">
+                                <div class="batch-notice-inner">
+                                    <i class="fas fa-lock"></i>
+                                    <span>${noticeMsg}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else if (countdownDays > 0) {
+                        statusOrCountdownHtml = `
                             <div class="course-countdown" data-days="${countdownDays}" data-hours="12">
                                 <div class="countdown-label"><i class="fas fa-stopwatch"></i> متبقي لانطلاق فترة الحجز والتجربة:</div>
                                 <div class="countdown-timer">
@@ -194,10 +234,14 @@ async function loadDynamicSiteContent() {
                         `;
                     }
 
+                    const enrollBtnContent = isCourseFull 
+                        ? '<i class="fas fa-ticket-alt"></i> حجز مقعد للدفعة القادمة'
+                        : '<i class="fas fa-bolt"></i> حجز مقعد تدريبي';
+
                     combinedHTML += `
                         <div class="premium-course-card scroll-reveal" data-course-id="${docSnap.id}">
                             <div class="course-card-header">
-                                <div class="course-badge">${badge}</div>
+                                <div class="course-badge" style="${badgeStyle}">${badge}</div>
                                 <div class="course-icon"><i class="${iconClass}"></i></div>
                             </div>
                             <h3 class="course-title">${c.title || 'مسار تدريبي معتمد'}</h3>
@@ -207,7 +251,7 @@ async function loadDynamicSiteContent() {
                                 <small class="price-note">حضور ومحتوى متاح | الرسوم لطلب الشهادة المعتمدة</small>
                             </div>
 
-                            ${countdownHtml}
+                            ${statusOrCountdownHtml}
 
                             <p class="course-desc">${c.description || 'مسار تخصصي عملي متكامل بأعلى المعايير التدريبية.'}</p>
                             
@@ -227,10 +271,10 @@ async function loadDynamicSiteContent() {
                             </div>
 
                             <button class="btn-enroll open-booking-btn" 
-                                data-course="${c.title}" 
+                                data-course="${c.title || 'مسار تدريبي معتمد'}" 
                                 data-wa="${waTarget}" 
                                 data-tg="${tgTarget}">
-                                <i class="fas fa-bolt"></i> حجز مقعد تدريبي
+                                ${enrollBtnContent}
                             </button>
                         </div>
                     `;
@@ -259,16 +303,16 @@ async function loadDynamicSiteContent() {
     }
 }
 
-// تطبيق تعديلات دورتي الأساس بشكل قطعي وجذري
+// تطبيق تعديلات دورتي الأساس بشكل قطعي وجذري مع تلوين الشارة وتحديث الأزرار
 function applyBaseCourseModifications(data) {
     const cards = document.querySelectorAll('.premium-course-card');
     if (cards.length < 2) return;
 
     const setupBaseCard = (card, prefix) => {
-        // 1. تحديث الشارة
+        // 1. تحديث الشارة وتلوينها تلقائياً حسب حالتها
         if (data[`${prefix}_badge`]) {
             const b = card.querySelector('.course-badge');
-            if (b) b.innerText = data[`${prefix}_badge`];
+            applyDynamicBadgeStyle(b, data[`${prefix}_badge`]);
         }
 
         // 2. تحديث الأسعار بمراعاة العملة المختارة حالياً
@@ -285,10 +329,18 @@ function applyBaseCourseModifications(data) {
             else if (data[`${prefix}_price_usd`]) p.innerText = data[`${prefix}_price_usd`];
         }
 
-        // 3. تحديث النبذة
+        // 3. تحديث النبذة والمحاور
         if (data[`${prefix}_desc`]) {
             const descElem = card.querySelector('.course-desc');
             if (descElem) descElem.innerText = data[`${prefix}_desc`];
+
+            const lines = data[`${prefix}_desc`].split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length > 1) {
+                const ulElem = card.querySelector('.course-dropdown-body ul');
+                if (ulElem) {
+                    ulElem.innerHTML = lines.map(item => `<li><i class="fas fa-check-circle"></i> ${item}</li>`).join('');
+                }
+            }
         }
 
         // 4. حذف العبارة القديمة بشكل حاسم وقطعي أياً كان نوع الـ Tag
@@ -305,12 +357,15 @@ function applyBaseCourseModifications(data) {
         });
 
         // 5. فحص حالة المقاعد (مكتملة أم مفتوحة)
+        const currentBadgeText = (data[`${prefix}_badge`] || card.querySelector('.course-badge')?.innerText || '');
         const isFull = (data[`${prefix}_status`] === 'full') || 
-                       (data[`${prefix}_badge`] && data[`${prefix}_badge`].includes('مكتملة'));
+                       currentBadgeText.includes('مكتملة') || 
+                       currentBadgeText.includes('🔴');
 
         let countdownBox = card.querySelector('.course-countdown');
         let completedBox = card.querySelector('.completed-batch-notice');
         const priceBox = card.querySelector('.course-price-box');
+        const enrollBtn = card.querySelector('.open-booking-btn');
 
         if (isFull) {
             // إخفاء أي عداد
@@ -336,9 +391,17 @@ function applyBaseCourseModifications(data) {
                     <span>${noticeText}</span>
                 </div>
             `;
+
+            if (enrollBtn) {
+                enrollBtn.innerHTML = '<i class="fas fa-ticket-alt"></i> حجز مقعد للدفعة القادمة';
+            }
         } else {
             // المقاعد مفتوحة: إخفاء صندوق الإشعار وإظهار العداد
             if (completedBox) completedBox.style.display = 'none';
+
+            if (enrollBtn) {
+                enrollBtn.innerHTML = '<i class="fas fa-bolt"></i> حجز مقعد تدريبي';
+            }
 
             const days = parseInt(data[`${prefix}_countdown_days`]);
             if (!isNaN(days) && days > 0) {
@@ -352,6 +415,7 @@ function applyBaseCourseModifications(data) {
                     }
                 }
                 countdownBox.style.display = 'block';
+                countdownBox.removeAttribute('style');
                 countdownBox.setAttribute('data-days', days);
                 countdownBox.setAttribute('data-hours', 12);
                 countdownBox.innerHTML = `
@@ -364,13 +428,13 @@ function applyBaseCourseModifications(data) {
                         <div class="timer-unit"><span class="timer-val mins-val">00</span><small>دقيقة</small></div>
                     </div>
                 `;
-            } else if (countdownBox) {
+            } else if (days === 0 && countdownBox) {
                 countdownBox.style.display = 'none';
             }
         }
     };
 
-    // تطبيق التعديل على الكارت الأول والثاني
+    // تطبيق التعديل على الكارت الأول (الإنجليزية) والثاني (تطوير الويب)
     setupBaseCard(cards[0], 'c_eng');
     setupBaseCard(cards[1], 'c_web');
 }
@@ -414,7 +478,16 @@ function updateComparisonTableDynamically(coursesSnap) {
     const tableTbody = document.querySelector('.comparison-table tbody');
     if (!tableTheadTr || !tableTbody || coursesSnap.empty) return;
 
-    if (tableTheadTr.children.length > 3) return;
+    // إعادة ضبط الأعمدة الإضافية لمنع التكرار
+    while (tableTheadTr.children.length > 3) {
+        tableTheadTr.removeChild(tableTheadTr.lastChild);
+    }
+    const rows = tableTbody.querySelectorAll('tr');
+    rows.forEach(r => {
+        while (r.children.length > 3) {
+            r.removeChild(r.lastChild);
+        }
+    });
 
     coursesSnap.forEach(docSnap => {
         const c = docSnap.data();
@@ -422,7 +495,6 @@ function updateComparisonTableDynamically(coursesSnap) {
         th.innerHTML = `<i class="${c.icon || 'fas fa-laptop-code'} icon-neon"></i> ${c.title}`;
         tableTheadTr.appendChild(th);
 
-        const rows = tableTbody.querySelectorAll('tr');
         if (rows.length >= 5) {
             const td1 = document.createElement('td');
             td1.innerText = "تأسيسي إلى احترافي (مشاريع حية ومتابعة)";
